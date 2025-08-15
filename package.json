@@ -1,0 +1,30 @@
+{
+    "name": "talenttrace-fullstack",
+    "version": "1.0.0",
+    "description": "TalentTrace - Plataforma completa de experiencias laborales",
+    "private": true,
+    "scripts": {
+        "install:all": "npm install --prefix backend && npm install --prefix frontend",
+        "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+        "dev:backend": "cd backend && npm run dev",
+        "dev:frontend": "cd frontend && npm start",
+        "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+        "start:backend": "cd backend && npm start",
+        "start:frontend": "cd frontend && npm run build && serve -s frontend/build",
+        "build": "cd backend && npm run build && cd ../frontend && npm run build",
+        "clean": "rimraf backend/dist backend/node_modules frontend/build frontend/node_modules node_modules"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2",
+        "rimraf": "^5.0.5",
+        "serve": "^14.2.1"
+    },
+    "keywords": [
+        "fullstack",
+        "react",
+        "nodejs",
+        "typescript"
+    ],
+    "author": "",
+    "license": "MIT"
+}
