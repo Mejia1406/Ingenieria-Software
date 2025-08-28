@@ -1,29 +1,33 @@
 import dotenv from 'dotenv';
-import app from './app';
 
-// Cargar variables de entorno
+// Cargar variables de entorno ANTES de importar otros módulos
 dotenv.config();
+
+import app from './app';
+import connectDB from './config/database';
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log('\n🚀 ==========================================');
-    console.log('✅ TalentTrace Server iniciado correctamente!');
-    console.log(`📍 URL: http://localhost:${PORT}`);
-    console.log(`📊 Entorno: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🌐 Frontend: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
-    console.log(`⏰ Iniciado: ${new Date().toLocaleString('es-ES', { timeZone: 'America/Bogota' })}`);
-    console.log('==========================================\n');
-    console.log('💡 Ve a http://localhost:5000 para ver el Hola Mundo!');
-});
+const startServer = async () => {
+    try {
+        // Verificar que la URI esté cargada
+        console.log('🔹 MONGODB_URI loaded:', !!process.env.MONGODB_URI);
+        console.log('🔹 MONGODB_URI:', process.env.MONGODB_URI?.substring(0, 50) + '...');
+        
+        await connectDB();
+        
+        app.listen(PORT, () => {
+            console.log('\n🚀 ==========================================');
+            console.log('✅ TalentTrace Server iniciado correctamente!');
+            console.log(`📍 URL: http://localhost:${PORT}`);
+            console.log(`📊 Entorno: ${process.env.NODE_ENV || 'development'}`);
+            console.log('==========================================\n');
+        });
 
-// Manejar cierre graceful
-process.on('SIGTERM', () => {
-    console.log('🛑 Cerrando servidor...');
-    process.exit(0);
-});
+    } catch (error) {
+        console.error('❌ Error al iniciar el servidor:', error);
+        process.exit(1);
+    }
+};
 
-process.on('SIGINT', () => {
-    console.log('\n🛑 Cerrando servidor...');
-    process.exit(0);
-});
+startServer();

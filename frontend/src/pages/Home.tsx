@@ -1,6 +1,55 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import AuthPage from './Auth';
+
+interface User {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    userType: string;
+    isVerified: boolean;
+}
 
 const HomePage: React.FC = () => {
+    const [showAuth, setShowAuth] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    useEffect(() => {
+        // Check if user is logged in on component mount
+        const token = localStorage.getItem('token');
+        const userData = localStorage.getItem('user');
+        
+        if (token && userData) {
+            try {
+                setUser(JSON.parse(userData));
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+            }
+        }
+    }, []);
+
+    const handleAuthSuccess = (userData: User, token: string) => {
+        setUser(userData);
+        setShowAuth(false);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+    };
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            // TODO: Implementar búsqueda
+            console.log('Searching for:', searchQuery);
+        }
+    };
+
     return (
         <div className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden" style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}>
             <div className="layout-container flex h-full grow flex-col">
@@ -19,31 +68,69 @@ const HomePage: React.FC = () => {
                         <div className="flex items-center gap-9">
                             <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Home</a>
                             <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Reviews</a>
-                            <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Salaries</a>
-                            <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Jobs</a>
+                            <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Companies</a>
+                            <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Experiences</a>
                         </div>
                     </div>
                     <div className="flex flex-1 justify-end gap-8">
-                        <label className="flex flex-col min-w-40 !h-10 max-w-64">
-                            <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
-                                <div className="text-slate-500 flex border-none bg-slate-100 items-center justify-center pl-4 rounded-l-lg border-r-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                                        <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z" />
-                                    </svg>
+                        <form onSubmit={handleSearch} className="flex">
+                            <label className="flex flex-col min-w-40 !h-10 max-w-64">
+                                <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
+                                    <div className="text-slate-500 flex border-none bg-slate-100 items-center justify-center pl-4 rounded-l-lg border-r-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                                            <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z" />
+                                        </svg>
+                                    </div>
+                                    <input
+                                        placeholder="Search companies..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 focus:outline-0 focus:ring-0 border-none bg-slate-100 focus:border-none h-full placeholder:text-slate-500 px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
+                                    />
                                 </div>
-                                <input
-                                    placeholder="Search"
-                                    className="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 focus:outline-0 focus:ring-0 border-none bg-slate-100 focus:border-none h-full placeholder:text-slate-500 px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
-                                />
-                            </div>
-                        </label>
+                            </label>
+                        </form>
+                        
                         <div className="flex gap-2">
-                            <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-blue-600 text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-700 transition-colors">
-                                <span className="truncate">Sign In</span>
-                            </button>
-                            <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-slate-100 text-slate-900 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-slate-200 transition-colors">
-                                <span className="truncate">Write a Review</span>
-                            </button>
+                            {user ? (
+                                <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                                            {user.firstName[0]}{user.lastName[0]}
+                                        </div>
+                                        <span className="text-slate-700 font-medium">
+                                            {user.firstName} {user.lastName}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowAuth(true)}
+                                        className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-green-600 text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-green-700 transition-colors"
+                                    >
+                                        <span className="truncate">Write Experience</span>
+                                    </button>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-slate-100 text-slate-900 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-slate-200 transition-colors"
+                                    >
+                                        <span className="truncate">Logout</span>
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={() => setShowAuth(true)}
+                                        className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-blue-600 text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-700 transition-colors"
+                                    >
+                                        <span className="truncate">Sign In</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setShowAuth(true)}
+                                        className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-slate-100 text-slate-900 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-slate-200 transition-colors"
+                                    >
+                                        <span className="truncate">Write a Review</span>
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
                 </header>
@@ -68,24 +155,31 @@ const HomePage: React.FC = () => {
                                             Explore company reviews, salaries, and interview insights from employees and candidates.
                                         </h2>
                                     </div>
-                                    <label className="flex flex-col min-w-40 h-14 w-full max-w-[480px] md:h-16">
-                                        <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
-                                            <div className="text-slate-500 flex border border-slate-300 bg-white items-center justify-center pl-[15px] rounded-l-lg border-r-0">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                                                    <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z" />
-                                                </svg>
+                                    <form onSubmit={handleSearch} className="w-full max-w-[480px]">
+                                        <label className="flex flex-col min-w-40 h-14 w-full md:h-16">
+                                            <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
+                                                <div className="text-slate-500 flex border border-slate-300 bg-white items-center justify-center pl-[15px] rounded-l-lg border-r-0">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
+                                                        <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z" />
+                                                    </svg>
+                                                </div>
+                                                <input
+                                                    placeholder="Search for a company"
+                                                    value={searchQuery}
+                                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                                    className="flex w-full min-w-0 flex-1 resize-none overflow-hidden text-slate-900 focus:outline-0 focus:ring-0 border border-slate-300 bg-white focus:border-slate-400 h-full placeholder:text-slate-500 px-[15px] border-r-0 border-l-0 text-sm md:text-base font-normal leading-normal"
+                                                />
+                                                <div className="flex items-center justify-center rounded-r-lg border-l-0 border border-slate-300 bg-white pr-[7px]">
+                                                    <button 
+                                                        type="submit"
+                                                        className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 md:h-12 px-4 md:px-5 bg-blue-600 text-white text-sm md:text-base font-bold leading-normal tracking-[0.015em] hover:bg-blue-700 transition-colors"
+                                                    >
+                                                        <span className="truncate">Search</span>
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <input
-                                                placeholder="Search for a company"
-                                                className="flex w-full min-w-0 flex-1 resize-none overflow-hidden text-slate-900 focus:outline-0 focus:ring-0 border border-slate-300 bg-white focus:border-slate-400 h-full placeholder:text-slate-500 px-[15px] border-r-0 border-l-0 text-sm md:text-base font-normal leading-normal"
-                                            />
-                                            <div className="flex items-center justify-center rounded-r-lg border-l-0 border border-slate-300 bg-white pr-[7px]">
-                                                <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 md:h-12 px-4 md:px-5 bg-blue-600 text-white text-sm md:text-base font-bold leading-normal tracking-[0.015em] hover:bg-blue-700 transition-colors">
-                                                    <span className="truncate">Search</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </label>
+                                        </label>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -102,6 +196,12 @@ const HomePage: React.FC = () => {
                                     <div>
                                         <p className="text-slate-900 text-base font-medium leading-normal">Tech Innovators Inc.</p>
                                         <p className="text-slate-500 text-sm font-normal leading-normal">Leading the way in software development and innovation.</p>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <div className="flex text-yellow-400">
+                                                ★★★★☆
+                                            </div>
+                                            <span className="text-sm text-slate-600">4.2 (127 reviews)</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex h-full flex-1 flex-col gap-4 rounded-lg min-w-60">
@@ -112,6 +212,12 @@ const HomePage: React.FC = () => {
                                     <div>
                                         <p className="text-slate-900 text-base font-medium leading-normal">Global Solutions Corp.</p>
                                         <p className="text-slate-500 text-sm font-normal leading-normal">Providing cutting-edge solutions to global challenges.</p>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <div className="flex text-yellow-400">
+                                                ★★★★★
+                                            </div>
+                                            <span className="text-sm text-slate-600">4.8 (89 reviews)</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex h-full flex-1 flex-col gap-4 rounded-lg min-w-60">
@@ -122,51 +228,120 @@ const HomePage: React.FC = () => {
                                     <div>
                                         <p className="text-slate-900 text-base font-medium leading-normal">Creative Minds Studio</p>
                                         <p className="text-slate-500 text-sm font-normal leading-normal">Fostering creativity and collaboration in a dynamic environment.</p>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <div className="flex text-yellow-400">
+                                                ★★★★☆
+                                            </div>
+                                            <span className="text-sm text-slate-600">4.5 (203 reviews)</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Success Stories */}
-                        <h2 className="text-slate-900 text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Success Stories</h2>
-                        <div className="p-4">
-                            <div className="flex flex-col lg:flex-row items-stretch justify-start rounded-lg gap-4">
-                                <div
-                                    className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg min-h-[200px]"
-                                    style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80")' }}
-                                />
-                                <div className="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-3 py-4 lg:px-4">
-                                    <p className="text-slate-900 text-lg font-bold leading-tight tracking-[-0.015em]">From Candidate to Team Lead</p>
-                                    <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:justify-between">
-                                        <p className="text-slate-500 text-base font-normal leading-normal">
-                                            Read how Sarah's journey from a candidate to a team lead at Tech Innovators Inc. was shaped by insights from our platform.
-                                        </p>
-                                        <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-4 bg-blue-600 text-white text-sm font-medium leading-normal hover:bg-blue-700 transition-colors">
-                                            <span className="truncate">Read Story</span>
-                                        </button>
+                        {/* Latest Reviews Section */}
+                        <h2 className="text-slate-900 text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Recent Reviews</h2>
+                        <div className="grid gap-4 px-4 pb-8">
+                            <div className="bg-white rounded-lg border border-slate-200 p-6">
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                            SM
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-slate-900">Software Engineer</p>
+                                            <p className="text-sm text-slate-600">Former Employee • Tech Innovators Inc.</p>
+                                        </div>
                                     </div>
+                                    <div className="flex items-center gap-1">
+                                        <div className="flex text-yellow-400 text-sm">★★★★☆</div>
+                                        <span className="text-sm text-slate-600 ml-1">4.0</span>
+                                    </div>
+                                </div>
+                                <h3 className="font-semibold text-slate-900 mb-2">Great place to grow your career</h3>
+                                <p className="text-slate-700 text-sm leading-relaxed mb-3">
+                                    Amazing work environment with supportive colleagues. The company truly invests in employee development
+                                    and provides excellent learning opportunities. Management is transparent and communicative.
+                                </p>
+                                <div className="flex gap-4 text-xs text-slate-500">
+                                    <span>👍 Helpful (23)</span>
+                                    <span>💬 Comment</span>
+                                    <span>📅 2 days ago</span>
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-lg border border-slate-200 p-6">
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                            AM
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-slate-900">Marketing Manager</p>
+                                            <p className="text-sm text-slate-600">Current Employee • Global Solutions Corp.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <div className="flex text-yellow-400 text-sm">★★★★★</div>
+                                        <span className="text-sm text-slate-600 ml-1">5.0</span>
+                                    </div>
+                                </div>
+                                <h3 className="font-semibold text-slate-900 mb-2">Outstanding company culture</h3>
+                                <p className="text-slate-700 text-sm leading-relaxed mb-3">
+                                    The work-life balance is exceptional, and the team is incredibly collaborative. 
+                                    Great benefits package and the leadership team really cares about employee wellbeing.
+                                </p>
+                                <div className="flex gap-4 text-xs text-slate-500">
+                                    <span>👍 Helpful (18)</span>
+                                    <span>💬 Comment</span>
+                                    <span>📅 1 week ago</span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Get Started */}
-                        <h2 className="text-slate-900 text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Get Started</h2>
-                        <div className="flex justify-center">
-                            <div className="flex flex-1 gap-3 flex-wrap px-4 py-3 max-w-[480px] justify-center">
-                                <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-blue-600 text-white text-sm font-bold leading-normal tracking-[0.015em] flex-1 hover:bg-blue-700 transition-colors">
-                                    <span className="truncate">Sign Up as Candidate</span>
+                        {/* Call to Action */}
+                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 mx-4 text-center text-white mb-8">
+                            <h2 className="text-2xl font-bold mb-4">Ready to share your experience?</h2>
+                            <p className="mb-6 text-blue-100">
+                                Help others make informed career decisions by sharing your workplace experiences.
+                            </p>
+                            <div className="flex gap-3 justify-center flex-wrap">
+                                <button
+                                    onClick={() => setShowAuth(true)}
+                                    className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+                                >
+                                    Write a Review
                                 </button>
-                                <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-slate-100 text-slate-900 text-sm font-bold leading-normal tracking-[0.015em] flex-1 hover:bg-slate-200 transition-colors">
-                                    <span className="truncate">Sign Up as Recruiter</span>
+                                <button
+                                    onClick={() => setShowAuth(true)}
+                                    className="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
+                                >
+                                    Share Your Experience
                                 </button>
                             </div>
                         </div>
-                        <p className="text-slate-500 text-sm font-normal leading-normal pb-3 pt-1 px-4 text-center underline cursor-pointer hover:text-slate-700 transition-colors">
-                            Already have an account? Sign In
-                        </p>
+
+                        {/* Footer Info */}
+                        <div className="text-center py-8 px-4 border-t border-slate-200">
+                            <h3 className="font-semibold text-slate-900 mb-2">🎯 TalentTrace</h3>
+                            <p className="text-slate-600 text-sm">
+                                Connecting talent with opportunities through transparent workplace insights
+                            </p>
+                            <p className="text-slate-500 text-xs mt-2">
+                                Developed at Universidad EAFIT 🇨🇴
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            {/* Auth Modal */}
+            {showAuth && (
+                <AuthPage
+                    onClose={() => setShowAuth(false)}
+                    onSuccess={handleAuthSuccess}
+                />
+            )}
         </div>
     );
 };

@@ -3,11 +3,31 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
+import connectDB from './config/database';
+
+// Import routes
+import authRoutes from './routes/auth';
+import companyRoutes from './routes/companies';
+import experienceRoutes from './routes/experiences';
 
 // Cargar variables de entorno
 dotenv.config();
 
 const app = express();
+
+// Connect to database
+connectDB();
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: {
+        error: 'Too many requests from this IP, please try again later.',
+        retryAfter: '15 minutes'
+    }
+});
 
 // Middlewares básicos
 app.use(helmet({
@@ -21,7 +41,41 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// ¡SOLO UNA RUTA! - Hola Mundo estético
+// Apply rate limiting to API routes
+app.use('/api/', limiter);
+
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/companies', companyRoutes);
+app.use('/api/experiences', experienceRoutes);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({
+        success: true,
+        message: 'TalentTrace API is running',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
+// Ruta principal con información de la API
+app.get('/api', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Welcome to TalentTrace API',
+        version: '1.0.0',
+        endpoints: {
+            auth: '/api/auth',
+            companies: '/api/companies',
+            experiences: '/api/experiences',
+            health: '/api/health'
+        },
+        documentation: 'https://docs.talenttrace.com'
+    });
+});
+
+// Mantener la ruta original del "Hola Mundo" estético
 app.get('/', (req, res) => {
     const currentTime = new Date().toLocaleString('es-ES', {
         timeZone: 'America/Bogota',
@@ -164,6 +218,43 @@ app.get('/', (req, res) => {
                     font-weight: 700;
                 }
 
+                .api-endpoints {
+                    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+                    padding: 1.5rem;
+                    border-radius: 12px;
+                    margin-bottom: 2rem;
+                    text-align: left;
+                }
+
+                .api-endpoints h3 {
+                    color: #475569;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    margin-bottom: 1rem;
+                    text-align: center;
+                }
+
+                .endpoint {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 0.5rem;
+                    font-family: 'Monaco', 'Menlo', monospace;
+                    font-size: 0.9rem;
+                }
+
+                .method {
+                    padding: 2px 8px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    font-size: 0.8rem;
+                    min-width: 60px;
+                    text-align: center;
+                }
+
+                .get { background: #d1fae5; color: #059669; }
+                .post { background: #dbeafe; color: #2563eb; }
+
                 .footer {
                     margin-top: 2rem;
                     padding-top: 1.5rem;
@@ -181,6 +272,11 @@ app.get('/', (req, res) => {
                     }
                     .container {
                         padding: 2rem 1.5rem;
+                    }
+                    .endpoint {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 5px;
                     }
                 }
             </style>
@@ -215,9 +311,40 @@ app.get('/', (req, res) => {
                     </div>
                 </div>
 
+                <div class="api-endpoints">
+                    <h3>🔗 Endpoints Disponibles</h3>
+                    <div class="endpoint">
+                        <span class="method get">GET</span>
+                        <span>/api - Información de la API</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method get">GET</span>
+                        <span>/api/health - Estado del servidor</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method post">POST</span>
+                        <span>/api/auth/register - Registro de usuarios</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method post">POST</span>
+                        <span>/api/auth/login - Autenticación</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method get">GET</span>
+                        <span>/api/companies - Listar empresas</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method get">GET</span>
+                        <span>/api/experiences - Listar experiencias</span>
+                    </div>
+                </div>
+
                 <div class="footer">
                     <p>🎯 <strong>TalentTrace</strong> - Plataforma de experiencias laborales</p>
                     <p>Desarrollado en Universidad Eafit 🇨🇴</p>
+                    <p style="margin-top: 1rem; font-size: 0.8rem;">
+                        💡 <strong>Tip:</strong> Visita <a href="/api" style="color: #2563eb;">/api</a> para ver la documentación JSON
+                    </p>
                 </div>
             </div>
         </body>
@@ -225,14 +352,41 @@ app.get('/', (req, res) => {
     `);
 });
 
+// Handle 404 for API routes
+app.use('/api/*', (req, res) => {
+    res.status(404).json({
+        success: false,
+        message: 'API endpoint not found',
+        availableEndpoints: [
+            'GET /api',
+            'GET /api/health',
+            'POST /api/auth/register',
+            'POST /api/auth/login',
+            'GET /api/companies',
+            'GET /api/experiences'
+        ]
+    });
+});
+
 // Middleware global de manejo de errores
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error('Error:', err);
 
-    res.status(err.status || 500).json({
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? err.message : 'Algo salió mal'
-    });
+    // Check if it's an API route
+    if (req.path.startsWith('/api/')) {
+        return res.status(err.status || 500).json({
+            success: false,
+            error: 'Error interno del servidor',
+            message: process.env.NODE_ENV === 'development' ? err.message : 'Algo salió mal'
+        });
+    }
+
+    // For non-API routes, send HTML error
+    res.status(err.status || 500).send(`
+        <h1>Error ${err.status || 500}</h1>
+        <p>${process.env.NODE_ENV === 'development' ? err.message : 'Algo salió mal'}</p>
+        <a href="/">Volver al inicio</a>
+    `);
 });
 
 export default app;
