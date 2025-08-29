@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from "react-router-dom";
 import AuthPage from './Auth';
 
 interface User {
@@ -68,7 +69,7 @@ const HomePage: React.FC = () => {
                         <div className="flex items-center gap-9">
                             <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Home</a>
                             <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Reviews</a>
-                            <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Companies</a>
+                            <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/companies">Companies</Link>
                             <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Experiences</a>
                         </div>
                     </div>
@@ -191,7 +192,7 @@ const HomePage: React.FC = () => {
                                 <div className="flex h-full flex-1 flex-col gap-4 rounded-lg min-w-60">
                                     <div
                                         className="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-lg flex flex-col"
-                                        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80")' }}
+                                        style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAO81K945vo1JQhF5bJ9O6C33gg8knGrIz8RyMxZ811j5Rm6C2paIVn6oAarrcF4PBZXufnsxIANL7HaQz_NFMgT1u3kY3ZdcjqMMirr3ncaWSRcAYbKbguqzi67RgJxlteVJT5pp9CLIWemt7iL4VY6yVsaF1Cv639P_qKNmok_wCSioSa_5_eTXhqYKcrEm7xMdo7V82nShYZLU9A6M7_1JQKNKgGlxc8LJIvpvxi71zIoBM-t3VHCnnLhb5QMMHOZanfCvdBfhY")' }}
                                     />
                                     <div>
                                         <p className="text-slate-900 text-base font-medium leading-normal">Tech Innovators Inc.</p>
