@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from "react-router-dom";
 import AuthPage from './Auth';
 
 interface User {
@@ -15,6 +15,9 @@ const HomePage: React.FC = () => {
     const [showAuth, setShowAuth] = useState(false);
     const [user, setUser] = useState<User | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         // Check if user is logged in on component mount
@@ -32,6 +35,20 @@ const HomePage: React.FC = () => {
         }
     }, []);
 
+    // Cerrar dropdown al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     const handleAuthSuccess = (userData: User, token: string) => {
         setUser(userData);
         setShowAuth(false);
@@ -41,6 +58,16 @@ const HomePage: React.FC = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUser(null);
+        setIsDropdownOpen(false);
+    };
+
+    const handleGoToProfile = () => {
+        navigate('/profile');
+        setIsDropdownOpen(false);
+    };
+
+    const toggleDropdown = () => {
+        setIsDropdownOpen(!isDropdownOpen);
     };
 
     const handleSearch = (e: React.FormEvent) => {
@@ -95,26 +122,67 @@ const HomePage: React.FC = () => {
                         <div className="flex gap-2">
                             {user ? (
                                 <div className="flex items-center gap-3">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                                            {user.firstName[0]}{user.lastName[0]}
-                                        </div>
-                                        <span className="text-slate-700 font-medium">
-                                            {user.firstName} {user.lastName}
-                                        </span>
+                                    {/* User Dropdown */}
+                                    <div className="relative" ref={dropdownRef}>
+                                        <button
+                                            onClick={toggleDropdown}
+                                            className="flex items-center gap-2 hover:bg-slate-100 rounded-lg px-3 py-2 transition-colors"
+                                        >
+                                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                                                {user.firstName[0]}{user.lastName[0]}
+                                            </div>
+                                            <span className="text-slate-700 font-medium">
+                                                {user.firstName} {user.lastName}
+                                            </span>
+                                            <svg 
+                                                className={`w-4 h-4 text-slate-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                                                fill="none" 
+                                                stroke="currentColor" 
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+
+                                        {/* Dropdown Menu */}
+                                        {isDropdownOpen && (
+                                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
+                                                <div className="px-4 py-2 border-b border-slate-200">
+                                                    <p className="text-sm font-medium text-slate-900">{user.firstName} {user.lastName}</p>
+                                                    <p className="text-xs text-slate-500">{user.email}</p>
+                                                </div>
+                                                <button
+                                                    onClick={handleGoToProfile}
+                                                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors flex items-center gap-2"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                    </svg>
+                                                    My Profile
+                                                </button>
+                                                <button
+                                                    onClick={() => { setShowAuth(true); setIsDropdownOpen(false); }}
+                                                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors flex items-center gap-2"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                    Write Experience
+                                                </button>
+                                                <div className="border-t border-slate-200 mt-2 pt-2">
+                                                    <button
+                                                        onClick={handleLogout}
+                                                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                                        </svg>
+                                                        Logout
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                    <button
-                                        onClick={() => setShowAuth(true)}
-                                        className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-green-600 text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-green-700 transition-colors"
-                                    >
-                                        <span className="truncate">Write Experience</span>
-                                    </button>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-slate-100 text-slate-900 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-slate-200 transition-colors"
-                                    >
-                                        <span className="truncate">Logout</span>
-                                    </button>
                                 </div>
                             ) : (
                                 <>
@@ -136,7 +204,7 @@ const HomePage: React.FC = () => {
                     </div>
                 </header>
 
-                {/* Main Content */}
+                {/* Main Content - Rest of your existing content */}
                 <div className="px-10 lg:px-40 flex flex-1 justify-center py-5">
                     <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
                         {/* Hero Section */}
