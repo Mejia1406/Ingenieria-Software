@@ -11,8 +11,471 @@ interface User {
     isVerified: boolean;
 }
 
+interface ReviewFormData {
+  companyName: string;
+  jobTitle: string;
+  outcome: string;
+  overallRating: number;
+  interviewDifficulty: number;
+  processTransparency: number;
+  reviewText: string;
+  pros: string;
+  cons: string;
+  advice: string;
+  recommendToFriend: boolean;
+  employmentStatus: 'current' | 'former' | 'candidate';
+  department: string;
+  location: string;
+  salary: string;
+}
+
+const WriteReviewModal: React.FC<{ 
+  isOpen: boolean; 
+  onClose: () => void; 
+  user: User;
+}> = ({ isOpen, onClose, user }) => {
+  const [formData, setFormData] = useState<ReviewFormData>({
+    companyName: '',
+    jobTitle: '',
+    outcome: '',
+    overallRating: 0,
+    interviewDifficulty: 0,
+    processTransparency: 0,
+    reviewText: '',
+    pros: '',
+    cons: '',
+    advice: '',
+    recommendToFriend: false,
+    employmentStatus: 'current',
+    department: '',
+    location: '',
+    salary: ''
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [step, setStep] = useState(1);
+
+  const companies = [
+    'Tech Innovators Inc.',
+    'Global Solutions Corp.',
+    'Creative Minds Studio',
+    'Digital Marketing Pro',
+    'Startup Hub Co.',
+    'Enterprise Systems Ltd.'
+  ];
+
+  const jobTitles = [
+    'Ingeniero de Software',
+    'Gerente de Producto',
+    'Científico de Datos',
+    'Gerente de Marketing',
+    'Representante de Ventas',
+    'Diseñador UX',
+    'Analista de Negocios',
+    'Gerente de Proyecto',
+    'Otro'
+  ];
+
+  const outcomes = [
+    'Conseguí el trabajo',
+    'No conseguí el trabajo',
+    'Rechacé la oferta',
+    'Aún en proceso',
+    'Entrevista cancelada'
+  ];
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleRatingChange = (field: string, rating: number) => {
+    setFormData(prev => ({ ...prev, [field]: rating }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const StarRating: React.FC<{ 
+    rating: number; 
+    onRatingChange: (rating: number) => void;
+    label: string;
+    error?: string;
+  }> = ({ rating, onRatingChange, label, error }) => {
+    return (
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+        <div className="flex gap-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              onClick={() => onRatingChange(star)}
+              className={`text-2xl transition-colors ${
+                star <= rating ? 'text-yellow-400' : 'text-gray-300'
+              } hover:text-yellow-400`}
+            >
+              ★
+            </button>
+          ))}
+          <span className="ml-2 text-sm text-gray-600">
+            {rating > 0 ? `${rating}/5` : 'Haz clic para calificar'}
+          </span>
+        </div>
+        {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+      </div>
+    );
+  };
+
+  const validateStep = (currentStep: number): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (currentStep === 1) {
+      if (!formData.companyName) newErrors.companyName = 'Por favor selecciona una empresa';
+      if (!formData.jobTitle) newErrors.jobTitle = 'Por favor selecciona un puesto';
+      if (!formData.outcome) newErrors.outcome = 'Por favor selecciona un resultado';
+    }
+
+    if (currentStep === 2) {
+      if (formData.overallRating === 0) newErrors.overallRating = 'Por favor califica tu experiencia general';
+      if (formData.interviewDifficulty === 0) newErrors.interviewDifficulty = 'Por favor califica la dificultad de la entrevista';
+      if (formData.processTransparency === 0) newErrors.processTransparency = 'Por favor califica la transparencia del proceso';
+    }
+
+    if (currentStep === 3) {
+      if (!formData.reviewText.trim()) newErrors.reviewText = 'Por favor escribe tu reseña';
+      if (formData.reviewText.length < 50) newErrors.reviewText = 'La reseña debe tener al menos 50 caracteres';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateStep(step)) {
+      setStep(step + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    setStep(step - 1);
+  };
+
+  const handleSubmit = async () => {
+    if (!validateStep(3)) return;
+
+    setIsSubmitting(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('Enviando reseña:', formData);
+      alert('¡Reseña enviada exitosamente!');
+      onClose();
+      
+      // Reset form
+      setFormData({
+        companyName: '',
+        jobTitle: '',
+        outcome: '',
+        overallRating: 0,
+        interviewDifficulty: 0,
+        processTransparency: 0,
+        reviewText: '',
+        pros: '',
+        cons: '',
+        advice: '',
+        recommendToFriend: false,
+        employmentStatus: 'current',
+        department: '',
+        location: '',
+        salary: ''
+      });
+      setStep(1);
+      setErrors({});
+      
+    } catch (error) {
+      console.error('Error enviando reseña:', error);
+      setErrors({ general: 'Error al enviar la reseña. Por favor intenta de nuevo.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900">Escribir Reseña</h2>
+              <p className="text-sm text-slate-600">Paso {step} de 3</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${(step / 3) * 100}%` }}
+            />
+          </div>
+
+          {errors.general && (
+            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+              {errors.general}
+            </div>
+          )}
+
+          {/* Step 1: Basic Information */}
+          {step === 1 && (
+            <div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-6">Información Básica</h3>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Seleccionar empresa *
+                </label>
+                <select
+                  name="companyName"
+                  value={formData.companyName}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.companyName ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                >
+                  <option value="">Elige una empresa...</option>
+                  {companies.map(company => (
+                    <option key={company} value={company}>{company}</option>
+                  ))}
+                </select>
+                {errors.companyName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.companyName}</p>
+                )}
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Seleccionar puesto *
+                </label>
+                <select
+                  name="jobTitle"
+                  value={formData.jobTitle}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.jobTitle ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                >
+                  <option value="">Elige un puesto...</option>
+                  {jobTitles.map(title => (
+                    <option key={title} value={title}>{title}</option>
+                  ))}
+                </select>
+                {errors.jobTitle && (
+                  <p className="text-red-500 text-sm mt-1">{errors.jobTitle}</p>
+                )}
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Seleccionar resultado *
+                </label>
+                <select
+                  name="outcome"
+                  value={formData.outcome}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.outcome ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                >
+                  <option value="">Elige un resultado...</option>
+                  {outcomes.map(outcome => (
+                    <option key={outcome} value={outcome}>{outcome}</option>
+                  ))}
+                </select>
+                {errors.outcome && (
+                  <p className="text-red-500 text-sm mt-1">{errors.outcome}</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Rate Your Experience */}
+          {step === 2 && (
+            <div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-6">Califica tu Experiencia</h3>
+              
+              <StarRating
+                rating={formData.overallRating}
+                onRatingChange={(rating) => handleRatingChange('overallRating', rating)}
+                label="Experiencia general *"
+                error={errors.overallRating}
+              />
+
+              <StarRating
+                rating={formData.interviewDifficulty}
+                onRatingChange={(rating) => handleRatingChange('interviewDifficulty', rating)}
+                label="Dificultad de la entrevista *"
+                error={errors.interviewDifficulty}
+              />
+
+              <StarRating
+                rating={formData.processTransparency}
+                onRatingChange={(rating) => handleRatingChange('processTransparency', rating)}
+                label="Transparencia del proceso *"
+                error={errors.processTransparency}
+              />
+            </div>
+          )}
+
+          {/* Step 3: Write Your Review */}
+          {step === 3 && (
+            <div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-6">Escribe tu Reseña</h3>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Escribe tu reseña *
+                </label>
+                <textarea
+                  name="reviewText"
+                  value={formData.reviewText}
+                  onChange={handleInputChange}
+                  rows={6}
+                  placeholder="Comparte tu experiencia con el proceso de entrevista de esta empresa..."
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical ${
+                    errors.reviewText ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  {formData.reviewText.length} caracteres (mínimo 50)
+                </p>
+                {errors.reviewText && (
+                  <p className="text-red-500 text-sm mt-1">{errors.reviewText}</p>
+                )}
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Aspectos positivos (opcional)
+                </label>
+                <textarea
+                  name="pros"
+                  value={formData.pros}
+                  onChange={handleInputChange}
+                  rows={3}
+                  placeholder="¿Qué te gustó del proceso?"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Aspectos negativos (opcional)
+                </label>
+                <textarea
+                  name="cons"
+                  value={formData.cons}
+                  onChange={handleInputChange}
+                  rows={3}
+                  placeholder="¿Qué se podría mejorar?"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Consejos para futuros candidatos (opcional)
+                </label>
+                <textarea
+                  name="advice"
+                  value={formData.advice}
+                  onChange={handleInputChange}
+                  rows={3}
+                  placeholder="¿Algún consejo para otros que postulen a esta empresa?"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    name="recommendToFriend"
+                    checked={formData.recommendToFriend}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    Recomendaría esta empresa a un amigo
+                  </span>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between pt-6 border-t border-gray-200">
+            <div>
+              {step > 1 && (
+                <button
+                  type="button"
+                  onClick={handlePrevious}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Anterior
+                </button>
+              )}
+            </div>
+            
+            <div>
+              {step < 3 ? (
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="px-8 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Siguiente
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="px-8 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isSubmitting ? 'Enviando...' : 'Enviar Reseña'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const HomePage: React.FC = () => {
     const [showAuth, setShowAuth] = useState(false);
+    const [showWriteReview, setShowWriteReview] = useState(false);
     const [user, setUser] = useState<User | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -20,7 +483,6 @@ const HomePage: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Check if user is logged in on component mount
         const token = localStorage.getItem('token');
         const userData = localStorage.getItem('user');
         
@@ -35,7 +497,6 @@ const HomePage: React.FC = () => {
         }
     }, []);
 
-    // Cerrar dropdown al hacer clic fuera
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -73,8 +534,16 @@ const HomePage: React.FC = () => {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (searchQuery.trim()) {
-            // TODO: Implementar búsqueda
-            console.log('Searching for:', searchQuery);
+            console.log('Buscando:', searchQuery);
+        }
+    };
+
+    const handleWriteReview = () => {
+        if (user) {
+            setShowWriteReview(true);
+            setIsDropdownOpen(false);
+        } else {
+            setShowAuth(true);
         }
     };
 
@@ -94,10 +563,10 @@ const HomePage: React.FC = () => {
                             <h2 className="text-slate-900 text-lg font-bold leading-tight tracking-[-0.015em]">TalentTrace</h2>
                         </div>
                         <div className="flex items-center gap-9">
-                            <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Home</a>
-                            <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Reviews</a>
-                            <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/companies">Companies</Link>
-                            <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Experiences</a>
+                            <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Inicio</a>
+                            <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Reseñas</a>
+                            <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/companies">Empresas</Link>
+                            <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Experiencias</a>
                         </div>
                     </div>
                     <div className="flex flex-1 justify-end gap-8">
@@ -110,7 +579,7 @@ const HomePage: React.FC = () => {
                                         </svg>
                                     </div>
                                     <input
-                                        placeholder="Search companies..."
+                                        placeholder="Buscar empresas..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 focus:outline-0 focus:ring-0 border-none bg-slate-100 focus:border-none h-full placeholder:text-slate-500 px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
@@ -122,7 +591,6 @@ const HomePage: React.FC = () => {
                         <div className="flex gap-2">
                             {user ? (
                                 <div className="flex items-center gap-3">
-                                    {/* User Dropdown */}
                                     <div className="relative" ref={dropdownRef}>
                                         <button
                                             onClick={toggleDropdown}
@@ -158,16 +626,16 @@ const HomePage: React.FC = () => {
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                     </svg>
-                                                    My Profile
+                                                    Mi Perfil
                                                 </button>
                                                 <button
-                                                    onClick={() => { setShowAuth(true); setIsDropdownOpen(false); }}
+                                                    onClick={handleWriteReview}
                                                     className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors flex items-center gap-2"
                                                 >
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                     </svg>
-                                                    Write Experience
+                                                    Escribir Experiencia
                                                 </button>
                                                 <div className="border-t border-slate-200 mt-2 pt-2">
                                                     <button
@@ -177,7 +645,7 @@ const HomePage: React.FC = () => {
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                                         </svg>
-                                                        Logout
+                                                        Cerrar Sesión
                                                     </button>
                                                 </div>
                                             </div>
@@ -190,13 +658,13 @@ const HomePage: React.FC = () => {
                                         onClick={() => setShowAuth(true)}
                                         className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-blue-600 text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-700 transition-colors"
                                     >
-                                        <span className="truncate">Sign In</span>
+                                        <span className="truncate">Iniciar Sesión</span>
                                     </button>
                                     <button
-                                        onClick={() => setShowAuth(true)}
+                                        onClick={handleWriteReview}
                                         className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-slate-100 text-slate-900 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-slate-200 transition-colors"
                                     >
-                                        <span className="truncate">Write a Review</span>
+                                        <span className="truncate">Escribir una Reseña</span>
                                     </button>
                                 </>
                             )}
@@ -204,7 +672,7 @@ const HomePage: React.FC = () => {
                     </div>
                 </header>
 
-                {/* Main Content - Rest of your existing content */}
+                {/* Main Content */}
                 <div className="px-10 lg:px-40 flex flex-1 justify-center py-5">
                     <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
                         {/* Hero Section */}
@@ -218,10 +686,10 @@ const HomePage: React.FC = () => {
                                 >
                                     <div className="flex flex-col gap-2 text-center">
                                         <h1 className="text-white text-4xl md:text-5xl font-black leading-tight tracking-[-0.033em]">
-                                            Find the right company for you
+                                            Encuentra la empresa perfecta para ti
                                         </h1>
                                         <h2 className="text-white text-sm md:text-base font-normal leading-normal">
-                                            Explore company reviews, salaries, and interview insights from employees and candidates.
+                                            Explora reseñas de empresas, salarios e insights de entrevistas de empleados y candidatos.
                                         </h2>
                                     </div>
                                     <form onSubmit={handleSearch} className="w-full max-w-[480px]">
@@ -233,7 +701,7 @@ const HomePage: React.FC = () => {
                                                     </svg>
                                                 </div>
                                                 <input
-                                                    placeholder="Search for a company"
+                                                    placeholder="Buscar empresa"
                                                     value={searchQuery}
                                                     onChange={(e) => setSearchQuery(e.target.value)}
                                                     className="flex w-full min-w-0 flex-1 resize-none overflow-hidden text-slate-900 focus:outline-0 focus:ring-0 border border-slate-300 bg-white focus:border-slate-400 h-full placeholder:text-slate-500 px-[15px] border-r-0 border-l-0 text-sm md:text-base font-normal leading-normal"
@@ -243,7 +711,7 @@ const HomePage: React.FC = () => {
                                                         type="submit"
                                                         className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 md:h-12 px-4 md:px-5 bg-blue-600 text-white text-sm md:text-base font-bold leading-normal tracking-[0.015em] hover:bg-blue-700 transition-colors"
                                                     >
-                                                        <span className="truncate">Search</span>
+                                                        <span className="truncate">Buscar</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -254,7 +722,7 @@ const HomePage: React.FC = () => {
                         </div>
 
                         {/* Featured Companies */}
-                        <h2 className="text-slate-900 text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Featured Companies</h2>
+                        <h2 className="text-slate-900 text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Empresas Destacadas</h2>
                         <div className="flex overflow-x-auto pb-4">
                             <div className="flex items-stretch p-4 gap-3 min-w-max">
                                 <div className="flex h-full flex-1 flex-col gap-4 rounded-lg min-w-60">
@@ -264,12 +732,12 @@ const HomePage: React.FC = () => {
                                     />
                                     <div>
                                         <p className="text-slate-900 text-base font-medium leading-normal">Tech Innovators Inc.</p>
-                                        <p className="text-slate-500 text-sm font-normal leading-normal">Leading the way in software development and innovation.</p>
+                                        <p className="text-slate-500 text-sm font-normal leading-normal">Liderando el camino en desarrollo de software e innovación.</p>
                                         <div className="flex items-center gap-2 mt-2">
                                             <div className="flex text-yellow-400">
                                                 ★★★★☆
                                             </div>
-                                            <span className="text-sm text-slate-600">4.2 (127 reviews)</span>
+                                            <span className="text-sm text-slate-600">4.2 (127 reseñas)</span>
                                         </div>
                                     </div>
                                 </div>
@@ -280,12 +748,12 @@ const HomePage: React.FC = () => {
                                     />
                                     <div>
                                         <p className="text-slate-900 text-base font-medium leading-normal">Global Solutions Corp.</p>
-                                        <p className="text-slate-500 text-sm font-normal leading-normal">Providing cutting-edge solutions to global challenges.</p>
+                                        <p className="text-slate-500 text-sm font-normal leading-normal">Proporcionando soluciones innovadoras a desafíos globales.</p>
                                         <div className="flex items-center gap-2 mt-2">
                                             <div className="flex text-yellow-400">
                                                 ★★★★★
                                             </div>
-                                            <span className="text-sm text-slate-600">4.8 (89 reviews)</span>
+                                            <span className="text-sm text-slate-600">4.8 (89 reseñas)</span>
                                         </div>
                                     </div>
                                 </div>
@@ -296,12 +764,12 @@ const HomePage: React.FC = () => {
                                     />
                                     <div>
                                         <p className="text-slate-900 text-base font-medium leading-normal">Creative Minds Studio</p>
-                                        <p className="text-slate-500 text-sm font-normal leading-normal">Fostering creativity and collaboration in a dynamic environment.</p>
+                                        <p className="text-slate-500 text-sm font-normal leading-normal">Fomentando la creatividad y colaboración en un ambiente dinámico.</p>
                                         <div className="flex items-center gap-2 mt-2">
                                             <div className="flex text-yellow-400">
                                                 ★★★★☆
                                             </div>
-                                            <span className="text-sm text-slate-600">4.5 (203 reviews)</span>
+                                            <span className="text-sm text-slate-600">4.5 (203 reseñas)</span>
                                         </div>
                                     </div>
                                 </div>
@@ -309,7 +777,7 @@ const HomePage: React.FC = () => {
                         </div>
 
                         {/* Latest Reviews Section */}
-                        <h2 className="text-slate-900 text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Recent Reviews</h2>
+                        <h2 className="text-slate-900 text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Reseñas Recientes</h2>
                         <div className="grid gap-4 px-4 pb-8">
                             <div className="bg-white rounded-lg border border-slate-200 p-6">
                                 <div className="flex items-start justify-between mb-3">
@@ -318,8 +786,8 @@ const HomePage: React.FC = () => {
                                             SM
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-slate-900">Software Engineer</p>
-                                            <p className="text-sm text-slate-600">Former Employee • Tech Innovators Inc.</p>
+                                            <p className="font-semibold text-slate-900">Ingeniero de Software</p>
+                                            <p className="text-sm text-slate-600">Ex Empleado • Tech Innovators Inc.</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1">
@@ -327,15 +795,15 @@ const HomePage: React.FC = () => {
                                         <span className="text-sm text-slate-600 ml-1">4.0</span>
                                     </div>
                                 </div>
-                                <h3 className="font-semibold text-slate-900 mb-2">Great place to grow your career</h3>
+                                <h3 className="font-semibold text-slate-900 mb-2">Excelente lugar para hacer crecer tu carrera</h3>
                                 <p className="text-slate-700 text-sm leading-relaxed mb-3">
-                                    Amazing work environment with supportive colleagues. The company truly invests in employee development
-                                    and provides excellent learning opportunities. Management is transparent and communicative.
+                                    Ambiente de trabajo increíble con colegas que te apoyan. La empresa realmente invierte en el desarrollo
+                                    de los empleados y proporciona excelentes oportunidades de aprendizaje. La gestión es transparente y comunicativa.
                                 </p>
                                 <div className="flex gap-4 text-xs text-slate-500">
-                                    <span>👍 Helpful (23)</span>
-                                    <span>💬 Comment</span>
-                                    <span>📅 2 days ago</span>
+                                    <span>👍 Útil (23)</span>
+                                    <span>💬 Comentar</span>
+                                    <span>📅 Hace 2 días</span>
                                 </div>
                             </div>
 
@@ -346,8 +814,8 @@ const HomePage: React.FC = () => {
                                             AM
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-slate-900">Marketing Manager</p>
-                                            <p className="text-sm text-slate-600">Current Employee • Global Solutions Corp.</p>
+                                            <p className="font-semibold text-slate-900">Gerente de Marketing</p>
+                                            <p className="text-sm text-slate-600">Empleado Actual • Global Solutions Corp.</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1">
@@ -355,37 +823,37 @@ const HomePage: React.FC = () => {
                                         <span className="text-sm text-slate-600 ml-1">5.0</span>
                                     </div>
                                 </div>
-                                <h3 className="font-semibold text-slate-900 mb-2">Outstanding company culture</h3>
+                                <h3 className="font-semibold text-slate-900 mb-2">Cultura empresarial excepcional</h3>
                                 <p className="text-slate-700 text-sm leading-relaxed mb-3">
-                                    The work-life balance is exceptional, and the team is incredibly collaborative. 
-                                    Great benefits package and the leadership team really cares about employee wellbeing.
+                                    El equilibrio trabajo-vida personal es excepcional, y el equipo es increíblemente colaborativo. 
+                                    Excelente paquete de beneficios y el equipo directivo realmente se preocupa por el bienestar de los empleados.
                                 </p>
                                 <div className="flex gap-4 text-xs text-slate-500">
-                                    <span>👍 Helpful (18)</span>
-                                    <span>💬 Comment</span>
-                                    <span>📅 1 week ago</span>
+                                    <span>👍 Útil (18)</span>
+                                    <span>💬 Comentar</span>
+                                    <span>📅 Hace 1 semana</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Call to Action */}
                         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 mx-4 text-center text-white mb-8">
-                            <h2 className="text-2xl font-bold mb-4">Ready to share your experience?</h2>
+                            <h2 className="text-2xl font-bold mb-4">¿Listo para compartir tu experiencia?</h2>
                             <p className="mb-6 text-blue-100">
-                                Help others make informed career decisions by sharing your workplace experiences.
+                                Ayuda a otros a tomar decisiones de carrera informadas compartiendo tus experiencias laborales.
                             </p>
                             <div className="flex gap-3 justify-center flex-wrap">
                                 <button
-                                    onClick={() => setShowAuth(true)}
+                                    onClick={handleWriteReview}
                                     className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
                                 >
-                                    Write a Review
+                                    Escribir una Reseña
                                 </button>
                                 <button
-                                    onClick={() => setShowAuth(true)}
+                                    onClick={handleWriteReview}
                                     className="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
                                 >
-                                    Share Your Experience
+                                    Compartir tu Experiencia
                                 </button>
                             </div>
                         </div>
@@ -394,10 +862,10 @@ const HomePage: React.FC = () => {
                         <div className="text-center py-8 px-4 border-t border-slate-200">
                             <h3 className="font-semibold text-slate-900 mb-2">🎯 TalentTrace</h3>
                             <p className="text-slate-600 text-sm">
-                                Connecting talent with opportunities through transparent workplace insights
+                                Conectando talento con oportunidades a través de insights transparentes del lugar de trabajo
                             </p>
                             <p className="text-slate-500 text-xs mt-2">
-                                Developed at Universidad EAFIT 🇨🇴
+                                Desarrollado en la Universidad EAFIT 🇨🇴
                             </p>
                         </div>
                     </div>
@@ -409,6 +877,15 @@ const HomePage: React.FC = () => {
                 <AuthPage
                     onClose={() => setShowAuth(false)}
                     onSuccess={handleAuthSuccess}
+                />
+            )}
+
+            {/* Write Review Modal */}
+            {showWriteReview && user && (
+                <WriteReviewModal
+                    isOpen={showWriteReview}
+                    onClose={() => setShowWriteReview(false)}
+                    user={user}
                 />
             )}
         </div>
