@@ -10,6 +10,7 @@ import connectDB from './config/database';
 import authRoutes from './routes/auth';
 import companyRoutes from './routes/companies';
 import experienceRoutes from './routes/experiences';
+import reviewRoutes from './routes/reviews'
 
 // Cargar variables de entorno
 dotenv.config();
@@ -48,6 +49,7 @@ app.use('/api/', limiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/experiences', experienceRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
