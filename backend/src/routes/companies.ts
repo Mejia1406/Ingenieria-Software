@@ -84,14 +84,6 @@ router.get(
 );
 
 // Obtener todas las empresas
-router.get("/", async (req, res) => {
-  try {
-    const companies = await Company.find().sort({ name: 1 }); // ordenadas alfabéticamente
-    res.status(200).json(companies);
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
 /**
  * POST /api/companies
  * Crear empresa (solo reclutadores o admin)

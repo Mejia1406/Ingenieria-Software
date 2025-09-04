@@ -4,22 +4,66 @@ import Review from '../models/Review';
 // Crear review
 export const createReview = async (req: Request, res: Response) => {
   try {
+    
+    const userId = (req as any).user?._id || null;
+
+    const {
+      company,
+      reviewType,
+      jobTitle,
+      department,
+      employmentStatus,
+      overallRating,
+      interviewDifficulty,
+      processTransparency,
+      reviewText,
+      pros,
+      cons,
+      recommendToFriend,
+      advice,
+      location,
+      salary
+    } = req.body;
+
     const review = await Review.create({
-      ...req.body,
-      author: (req as any).user?._id || null, // si usas auth
+      author: userId,
+      company,
+      reviewType,
+      jobTitle,
+      department,
+      employmentStatus,
+      overallRating: Number(overallRating),
+      ratings: {
+        workLifeBalance: Number(interviewDifficulty),
+        compensation: Number(processTransparency),
+        careerGrowth: Number(overallRating),
+        management: Number(overallRating),
+        culture: Number(overallRating)
+      },
+      title: `Experiencia como ${jobTitle}`,
+      content: reviewText,
+      pros,
+      cons,
+      recommendation: {
+        wouldRecommend: Boolean(recommendToFriend),
+        recommendToFriend: Boolean(recommendToFriend)
+      }
     });
 
-    res.status(201).json({
+    res.status(201 ).json({
       success: true,
       data: review,
+      message: 'Review creada correctamente'
     });
   } catch (err: any) {
+    console.error(err);
     res.status(500).json({
       success: false,
       error: err.message,
     });
   }
 };
+
 
 // Obtener reviews de una empresa
 export const getCompanyReviews = async (req: Request, res: Response) => {
@@ -80,3 +124,4 @@ export const deleteReview = async (req: Request, res: Response) => {
     });
   }
 };
+
