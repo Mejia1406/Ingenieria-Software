@@ -4,7 +4,6 @@ import Review from '../models/Review';
 // Crear review
 export const createReview = async (req: Request, res: Response) => {
   try {
-    
     const userId = (req as any).user?._id || null;
 
     const {
@@ -17,6 +16,7 @@ export const createReview = async (req: Request, res: Response) => {
       interviewDifficulty,
       processTransparency,
       reviewText,
+      content,
       pros,
       cons,
       recommendToFriend,
@@ -24,6 +24,13 @@ export const createReview = async (req: Request, res: Response) => {
       location,
       salary
     } = req.body;
+    
+
+    // Fix the values that are causing problems
+    const safeInterviewDifficulty = Number(interviewDifficulty) || Number(overallRating) || 3;
+    const safeProcessTransparency = Number(processTransparency) || Number(overallRating) || 3;
+    const safeOverallRating = Number(overallRating) || 3;
+    const safeEmploymentStatus = employmentStatus === 'candidate' ? 'former' : employmentStatus;
 
     const review = await Review.create({
       author: userId,
@@ -31,17 +38,17 @@ export const createReview = async (req: Request, res: Response) => {
       reviewType,
       jobTitle,
       department,
-      employmentStatus,
-      overallRating: Number(overallRating),
+      employmentStatus: safeEmploymentStatus, // Use the safe value
+      overallRating: safeOverallRating,
       ratings: {
-        workLifeBalance: Number(interviewDifficulty),
-        compensation: Number(processTransparency),
-        careerGrowth: Number(overallRating),
-        management: Number(overallRating),
-        culture: Number(overallRating)
+        workLifeBalance: safeInterviewDifficulty,
+        compensation: safeProcessTransparency,
+        careerGrowth: safeOverallRating,
+        management: safeOverallRating,
+        culture: safeOverallRating
       },
       title: `Experiencia como ${jobTitle}`,
-      content: reviewText,
+      content: req.body.content || reviewText || pros || "Sin contenido",
       pros,
       cons,
       recommendation: {
@@ -50,7 +57,7 @@ export const createReview = async (req: Request, res: Response) => {
       }
     });
 
-    res.status(201 ).json({
+    res.status(201).json({
       success: true,
       data: review,
       message: 'Review creada correctamente'
@@ -63,7 +70,6 @@ export const createReview = async (req: Request, res: Response) => {
     });
   }
 };
-
 
 // Obtener reviews de una empresa
 export const getCompanyReviews = async (req: Request, res: Response) => {

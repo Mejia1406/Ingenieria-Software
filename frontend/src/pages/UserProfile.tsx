@@ -133,6 +133,20 @@ const UserProfile: React.FC = () => {
             });
 
             const data = await response.json();
+            
+            if (response.status === 401) {
+            // Token expirado o inválido
+            console.log('Token expired, redirecting to login...');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setError('Session expired. Please login again.');
+            
+            // Redirigir al home después de 2 segundos
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 2000);
+            return;
+        }
 
             if (data.success) {
                 setUser(data.data.user);
