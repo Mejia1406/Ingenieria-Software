@@ -302,30 +302,28 @@ const Companies: React.FC = () => {
             )}
             
             {!loading && filteredCompanies.map(company => (
-              <div className="p-4" key={company._id}>
-                <Link to={`/companies/${company.slug || company._id}`}>
-                  <div className="flex items-stretch justify-between gap-4 rounded-lg">
-                    <div className="flex flex-col gap-1 flex-[2_2_0px]">
-                      <p className="text-[#49739c] text-sm font-normal leading-normal">{company.industry}</p>
-                      <p className="text-[#0d141c] text-base font-bold leading-tight">{company.name}</p>
-                      <p className="text-[#49739c] text-sm font-normal leading-normal">
-                        Puntuación promedio: {company.overallRating || 0} · {company.totalReviews || 0} reseñas
+              <Link to={`/companies/${company.slug}`} key={company._id} className="block p-4 hover:bg-slate-100 rounded-lg transition-colors">
+                <div className="flex items-stretch justify-between gap-4">
+                  <div className="flex flex-col gap-1 flex-[2_2_0px]">
+                    <p className="text-[#49739c] text-sm font-normal leading-normal">{company.industry}</p>
+                    <p className="text-[#0d141c] text-base font-bold leading-tight">{company.name}</p>
+                    <p className="text-[#49739c] text-sm font-normal leading-normal">
+                      Puntuación promedio: {company.overallRating || 0} · {company.totalReviews || 0} reseñas
+                    </p>
+                    {company.headquarters && (
+                      <p className="text-[#49739c] text-xs font-normal leading-normal">
+                        📍 {company.headquarters.city}, {company.headquarters.country}
                       </p>
-                      {company.headquarters && (
-                        <p className="text-[#49739c] text-xs font-normal leading-normal">
-                          📍 {company.headquarters.city}, {company.headquarters.country}
-                        </p>
-                      )}
-                    </div>
-                    {company.logo && (
-                      <div
-                        className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg flex-1"
-                        style={{ backgroundImage: `url("${company.logo}")` }}
-                      ></div>
                     )}
                   </div>
-                </Link>
-              </div>
+                  {company.logo && (
+                    <div
+                      className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg flex-1"
+                      style={{ backgroundImage: `url("${company.logo}")` }}
+                    ></div>
+                  )}
+                </div>
+              </Link>
             ))}
           </div>
         </div>
