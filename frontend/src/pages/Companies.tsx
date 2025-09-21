@@ -247,7 +247,7 @@ const Companies: React.FC = () => {
                     </svg>
                   </div>
                   <input
-                    placeholder="Search companies"
+                    placeholder="Buscar compañías"
                     className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0d141c] focus:outline-0 focus:ring-0 border-none bg-[#e7edf4] focus:border-none h-full placeholder:text-[#49739c] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
                     value={search}
                     onChange={e => setSearch(e.target.value)}
@@ -303,26 +303,28 @@ const Companies: React.FC = () => {
             
             {!loading && filteredCompanies.map(company => (
               <div className="p-4" key={company._id}>
-                <div className="flex items-stretch justify-between gap-4 rounded-lg">
-                  <div className="flex flex-col gap-1 flex-[2_2_0px]">
-                    <p className="text-[#49739c] text-sm font-normal leading-normal">{company.industry}</p>
-                    <p className="text-[#0d141c] text-base font-bold leading-tight">{company.name}</p>
-                    <p className="text-[#49739c] text-sm font-normal leading-normal">
-                      Average Rating: {company.overallRating || 0} · {company.totalReviews || 0} reviews
-                    </p>
-                    {company.headquarters && (
-                      <p className="text-[#49739c] text-xs font-normal leading-normal">
-                        📍 {company.headquarters.city}, {company.headquarters.country}
+                <Link to={`/companies/${company.slug || company._id}`}>
+                  <div className="flex items-stretch justify-between gap-4 rounded-lg">
+                    <div className="flex flex-col gap-1 flex-[2_2_0px]">
+                      <p className="text-[#49739c] text-sm font-normal leading-normal">{company.industry}</p>
+                      <p className="text-[#0d141c] text-base font-bold leading-tight">{company.name}</p>
+                      <p className="text-[#49739c] text-sm font-normal leading-normal">
+                        Puntuación promedio: {company.overallRating || 0} · {company.totalReviews || 0} reseñas
                       </p>
+                      {company.headquarters && (
+                        <p className="text-[#49739c] text-xs font-normal leading-normal">
+                          📍 {company.headquarters.city}, {company.headquarters.country}
+                        </p>
+                      )}
+                    </div>
+                    {company.logo && (
+                      <div
+                        className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg flex-1"
+                        style={{ backgroundImage: `url("${company.logo}")` }}
+                      ></div>
                     )}
                   </div>
-                  {company.logo && (
-                    <div
-                      className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg flex-1"
-                      style={{ backgroundImage: `url("${company.logo}")` }}
-                    ></div>
-                  )}
-                </div>
+                </Link>
               </div>
             ))}
           </div>
