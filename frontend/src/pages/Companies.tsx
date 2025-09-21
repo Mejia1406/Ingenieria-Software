@@ -154,10 +154,10 @@ const Companies: React.FC = () => {
               <h2 className="text-slate-900 text-lg font-bold leading-tight tracking-[-0.015em]">TalentTrace</h2>
             </div>
             <div className="flex items-center gap-9">
-              <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/">Home</Link>
-              <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Reviews</a>
-              <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/companies">Companies</Link>
-              <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Experiences</a>
+              <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/">Inicio</Link>
+              <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Reseñas</a>
+              <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/companies">Empresas</Link>
+              <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Experiencias</a>
             </div>
           </div>
           <div className="flex flex-1 justify-end gap-8">
@@ -289,16 +289,16 @@ const Companies: React.FC = () => {
                 ))}
               </select>
             </div>
-            
-            <h2 className="text-[#0d141c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Companies</h2>
-            
+
+            <h2 className="text-[#0d141c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Compañías</h2>
+
             {/* Lista de empresas */}
             {loading && (
-              <div className="p-4 text-center text-[#49739c]">Loading companies...</div>
+              <div className="p-4 text-center text-[#49739c]">Cargando compañías...</div>
             )}
             
             {!loading && filteredCompanies.length === 0 && (
-              <div className="p-4 text-center text-[#49739c]">No companies found.</div>
+              <div className="p-4 text-center text-[#49739c]">No se encontraron compañías.</div>
             )}
             
             {!loading && filteredCompanies.map(company => (
