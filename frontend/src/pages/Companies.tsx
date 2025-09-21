@@ -1,86 +1,148 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+// frontend/src/pages/Companies.tsx
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import WriteReviewModal from "../pages/WriteReview";
+import AuthPage from './Auth';
 
-interface Company {
-  industry: string;
-  name: string;
-  rating: number;
-  reviews: number;
-  image: string;
-  location: string;
-  size: string;
+interface User {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    userType: string;
+    isVerified: boolean;
 }
 
-const companiesData: Company[] = [
-  {
-    industry: "Technology",
-    name: "Tech Innovators Inc.",
-    rating: 4.5,
-    reviews: 1200,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAO81K945vo1JQhF5bJ9O6C33gg8knGrIz8RyMxZ811j5Rm6C2paIVn6oAarrcF4PBZXufnsxIANL7HaQz_NFMgT1u3kY3ZdcjqMMirr3ncaWSRcAYbKbguqzi67RgJxlteVJT5pp9CLIWemt7iL4VY6yVsaF1Cv639P_qKNmok_wCSioSa_5_eTXhqYKcrEm7xMdo7V82nShYZLU9A6M7_1JQKNKgGlxc8LJIvpvxi71zIoBM-t3VHCnnLhb5QMMHOZanfCvdBfhY",
-    location: "New York",
-    size: "1000+",
-  },
-  {
-    industry: "Finance",
-    name: "Global Finance Group",
-    rating: 4.2,
-    reviews: 850,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDdkz7Tgz-llb0sqgEtao_EQEbmG7nT8KHgthZMjQ8_HxBwtI8uycVSVmwR1rxcJLOX5YCAotF5vfeK2WxlMBES2C5dSUr3MP_0dBnBg2Ie5X0yqdd3xi1IFUCuARE5a5V_QlVEPoA8S416wvDwHGimH2KgRG4yvrTpxm5DXC2xroW2nJZh9ota7xwVzfZjioMX4p41RVvk1zmiA7k2q2GhlE51oV5mqj6rMmCQDMa_bJNoCHhXqy7CChostUoDeDyQlQm_g7xMmDs",
-    location: "London",
-    size: "500-999",
-  },
-  {
-    industry: "Healthcare",
-    name: "Health Solutions Corp.",
-    rating: 4.0,
-    reviews: 600,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBzIP3faEkcGClhd3PxkFnymxq0K9KbpTIeMb_5FL4suoN5ASb3s3Hrk1dPZcZVbgw8u2kP_wXRvceaiVNsh6PFEKtTGIreRy9Bo3YHYT1CE5riea4wbwf5L4FM3xZbYjqobYbjZsqPKrBk8h1BkxTX9zutfeKs4T0l0DE11yCuCWwN7jNP_andnBN8bW1NU29r6NN1H-mzWEqlVD0R4gkZLc749QwV-839rMIs62QCb9qpm8GEjwaObx1YjzORoCm2fZYiafezog4",
-    location: "Madrid",
-    size: "200-499",
-  },
-  {
-    industry: "Retail",
-    name: "Retail Empire Ltd.",
-    rating: 3.8,
-    reviews: 450,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBtiGNJQMNaA_TIpztX-jbafUycLFmRRfTjpJoMLxnEYDlTM6Dlcp7GxXcWanM-TFNx-W6cAaJM35QTIeWluSAWZguO_mDql5xl_6YngxH_5mfz-vcVUKbNvLTNzTl06EKZJli8Izcpxqfqros3xLRmHSJ0Gg1BF2GCavNPRJjLYLD2Hwe_efkzJOBD5JHDjXVPmbPJj2N0vEDHFrPH5qv6IFsqwkLwLl0r4gAtUsRZY7qRRK8kyVWRY2E8lDdYFpwOK6Se1U4tKxw",
-    location: "Berlin",
-    size: "50-199",
-  },
-  {
-    industry: "Consulting",
-    name: "Strategic Advisors LLC",
-    rating: 4.3,
-    reviews: 700,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCFve09p18Y5r2t-11TH8q3IiyK9Jr6dwN8-d49Sn-89avnENDF-KuEYdxaGlFufdG-tBNb9u5LRwOsYzMdVzBnSkEqZftnjU7h6QVsBK_DVk6ZT9gYqRJ1_CNSovOJjdBUUQQqF3U7sxOsIiT4N4iobO-FxhD_qA9LiWufQDpAJ4JDN0DoQJ2IC6u_9egB_bvWAnTaooW6Vzh_768m6l0v9bzMf_pRorVlD26qP8YNVA0-OLgdJN9Nl4wtJfmiYeSXDzsvBKLeNIo",
-    location: "Paris",
-    size: "1-49",
-  },
-];
-
-const industries = ["All", ...Array.from(new Set(companiesData.map(c => c.industry)))];
-const locations = ["All", ...Array.from(new Set(companiesData.map(c => c.location)))];
-const sizes = ["All", ...Array.from(new Set(companiesData.map(c => c.size)))];
+interface Company {
+  _id: string;
+  name: string;
+  slug: string;
+  industry: string;
+  size: string;
+  overallRating: number;
+  totalReviews: number;
+  logo?: string;
+  headquarters?: {
+    city: string;
+    country: string;
+  };
+}
 
 const Companies: React.FC = () => {
   const [search, setSearch] = useState("");
   const [industry, setIndustry] = useState("All");
   const [location, setLocation] = useState("All");
   const [size, setSize] = useState("All");
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAuth, setShowAuth] = useState(false);
+  const [showWriteReview, setShowWriteReview] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-  const filteredCompanies = companiesData.filter(company => {
+
+  // Get unique values for filters
+  const industries = ["All", ...Array.from(new Set(companies.map(c => c.industry)))];
+  const locations = ["All", ...Array.from(new Set(companies.map(c => c.headquarters?.city || "").filter(Boolean)))];
+  const sizes = ["All", "1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"];
+
+  // Load user from localStorage
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Load companies from database
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`${API_URL}/companies`);
+        if (response.data.success && response.data.data.companies) {
+          setCompanies(response.data.data.companies);
+        }
+      } catch (error) {
+        console.error('Error fetching companies:', error);
+        // Use fallback data if API fails
+        
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCompanies();
+  }, [API_URL]);
+
+  const filteredCompanies = companies.filter(company => {
     const matchesSearch = company.name.toLowerCase().includes(search.toLowerCase());
     const matchesIndustry = industry === "All" || company.industry === industry;
-    const matchesLocation = location === "All" || company.location === location;
+    const matchesLocation = location === "All" || company.headquarters?.city === location;
     const matchesSize = size === "All" || company.size === size;
     return matchesSearch && matchesIndustry && matchesLocation && matchesSize;
   });
 
+  const handleAuthSuccess = (userData: User, token: string) => {
+    setUser(userData);
+    setShowAuth(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setIsDropdownOpen(false);
+  };
+
+  const handleGoToProfile = () => {
+    navigate('/profile');
+    setIsDropdownOpen(false);
+  };
+
+  const handleWriteReview = () => {
+    if (user) {
+      setShowWriteReview(true);
+      setIsDropdownOpen(false);
+    } else {
+      setShowAuth(true);
+    }
+  };
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
   return (
     <div className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden" style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}>
       <div className="layout-container flex h-full grow flex-col">
-<header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-slate-200 px-10 py-3">
+        <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-slate-200 px-10 py-3">
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-4 text-slate-900">
               <div className="size-4">
@@ -99,8 +161,80 @@ const Companies: React.FC = () => {
             </div>
           </div>
           <div className="flex flex-1 justify-end gap-8">
+            {user ? (
+              <div className="flex items-center gap-3">
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={toggleDropdown}
+                    className="flex items-center gap-2 hover:bg-slate-100 rounded-lg px-3 py-2 transition-colors"
+                  >
+                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                      {user.firstName[0]}{user.lastName[0]}
+                    </div>
+                    <span className="text-slate-700 font-medium">
+                      {user.firstName} {user.lastName}
+                    </span>
+                    <svg 
+                      className={`w-4 h-4 text-slate-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
+                      <div className="px-4 py-2 border-b border-slate-200">
+                        <p className="text-sm font-medium text-slate-900">{user.firstName} {user.lastName}</p>
+                        <p className="text-xs text-slate-500">{user.email}</p>
+                      </div>
+                      <button
+                        onClick={handleGoToProfile}
+                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        Mi Perfil
+                      </button>
+                      <button
+                        onClick={handleWriteReview}
+                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Escribir Experiencia
+                      </button>
+                      <div className="border-t border-slate-200 mt-2 pt-2">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          Cerrar Sesión
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAuth(true)}
+                className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-blue-600 text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-700 transition-colors"
+              >
+                <span className="truncate">Iniciar Sesión</span>
+              </button>
+            )}
           </div>
         </header>
+        
         <div className="px-40 flex flex-1 justify-center py-5">
           <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
             {/* Search bar */}
@@ -121,6 +255,7 @@ const Companies: React.FC = () => {
                 </div>
               </label>
             </div>
+            
             {/* Filtros */}
             <div className="flex gap-3 p-3 flex-wrap pr-4">
               {/* Industry filter */}
@@ -140,7 +275,7 @@ const Companies: React.FC = () => {
                 onChange={e => setLocation(e.target.value)}
               >
                 {locations.map(loc => (
-                  <option key={loc} value={loc}>{loc}</option>
+                  <option key={loc} value={loc}>{loc || 'Unknown'}</option>
                 ))}
               </select>
               {/* Size filter */}
@@ -154,36 +289,62 @@ const Companies: React.FC = () => {
                 ))}
               </select>
             </div>
+            
             <h2 className="text-[#0d141c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Companies</h2>
+            
             {/* Lista de empresas */}
-            {filteredCompanies.length === 0 && (
+            {loading && (
+              <div className="p-4 text-center text-[#49739c]">Loading companies...</div>
+            )}
+            
+            {!loading && filteredCompanies.length === 0 && (
               <div className="p-4 text-center text-[#49739c]">No companies found.</div>
             )}
-            {filteredCompanies.map(company => (
-              <div className="p-4" key={company.name}>
+            
+            {!loading && filteredCompanies.map(company => (
+              <div className="p-4" key={company._id}>
                 <div className="flex items-stretch justify-between gap-4 rounded-lg">
                   <div className="flex flex-col gap-1 flex-[2_2_0px]">
                     <p className="text-[#49739c] text-sm font-normal leading-normal">{company.industry}</p>
                     <p className="text-[#0d141c] text-base font-bold leading-tight">{company.name}</p>
                     <p className="text-[#49739c] text-sm font-normal leading-normal">
-                      Average Rating: {company.rating} · {company.reviews} reviews
+                      Average Rating: {company.overallRating || 0} · {company.totalReviews || 0} reviews
                     </p>
+                    {company.headquarters && (
+                      <p className="text-[#49739c] text-xs font-normal leading-normal">
+                        📍 {company.headquarters.city}, {company.headquarters.country}
+                      </p>
+                    )}
                   </div>
-                  <div
-                    className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg flex-1"
-                    style={{ backgroundImage: `url("${company.image}")` }}
-                  ></div>
+                  {company.logo && (
+                    <div
+                      className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg flex-1"
+                      style={{ backgroundImage: `url("${company.logo}")` }}
+                    ></div>
+                  )}
                 </div>
               </div>
             ))}
-            {/* Paginación (puedes implementar si lo necesitas) */}
-            <div className="flex items-center justify-center p-4">
-              {/* ...paginación... */}
-            </div>
           </div>
         </div>
       </div>
+
+      {/* Auth Modal */}
+      {showAuth && (
+        <AuthPage
+          onClose={() => setShowAuth(false)}
+          onSuccess={handleAuthSuccess}
+        />
+      )}
+
+      {/* Write Review Modal */}
+      <WriteReviewModal
+        isOpen={showWriteReview}
+        onClose={() => setShowWriteReview(false)}
+        user={user}
+      />
     </div>
   );
 };
+
 export default Companies;
