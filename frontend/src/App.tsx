@@ -5,6 +5,7 @@ import Companies from "./pages/Companies";
 import UserProfile from "./pages/UserProfile";
 import WriteReview from "./pages/WriteReview";
 import WriteReviewModal from './pages/WriteReview';
+import CompanyDetail from './pages/CompanyDetail';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/write-review" element={<WriteReview isOpen={false} onClose={function (): void {
           throw new Error('Function not implemented.');
         } } user={null}/>} />
+        <Route path="/companies/:companyId" element={<CompanyDetail />} />
       </Routes>
     </Router>
   );

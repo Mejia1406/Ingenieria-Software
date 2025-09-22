@@ -1,4 +1,4 @@
-    import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
     import { Link, useNavigate } from "react-router-dom";
     import WriteReviewModal from "./WriteReview";
     import AuthPage from './Auth';
@@ -134,7 +134,7 @@
         const handleSearch = (e: React.FormEvent) => {
             e.preventDefault();
             if (searchQuery.trim()) {
-                console.log('Buscando:', searchQuery);
+                navigate(`/companies?search=${encodeURIComponent(searchQuery.trim())}`);
             }
         };
 
@@ -281,7 +281,7 @@
                                 <div
                                     className="flex min-h-[480px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-lg items-center justify-center p-8"
                                     style={{
-                                        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url("https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1626&q=80")`
+                                        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url("https://www.sydle.com/blog/assets/post/objetivos-de-una-empresa-mejores-metodos-617303753885651fa20ef5e9/business-goals.jpg")`
                                     }}
                                 >
                                     <div className="flex flex-col gap-2 text-center">

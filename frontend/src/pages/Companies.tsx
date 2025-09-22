@@ -1,6 +1,6 @@
 // frontend/src/pages/Companies.tsx
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation as useRouterLocation } from "react-router-dom";
 import axios from "axios";
 import WriteReviewModal from "../pages/WriteReview";
 import AuthPage from './Auth';
@@ -42,6 +42,7 @@ const Companies: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const routerLocation = useRouterLocation();
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 
@@ -101,6 +102,12 @@ const Companies: React.FC = () => {
     fetchCompanies();
   }, [API_URL]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(routerLocation.search);
+    const searchParam = params.get("search") || "";
+    setSearch(searchParam);
+  }, [routerLocation.search]);
+
   const filteredCompanies = companies.filter(company => {
     const matchesSearch = company.name.toLowerCase().includes(search.toLowerCase());
     const matchesIndustry = industry === "All" || company.industry === industry;
@@ -154,10 +161,10 @@ const Companies: React.FC = () => {
               <h2 className="text-slate-900 text-lg font-bold leading-tight tracking-[-0.015em]">TalentTrace</h2>
             </div>
             <div className="flex items-center gap-9">
-              <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/">Home</Link>
-              <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Reviews</a>
-              <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/companies">Companies</Link>
-              <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Experiences</a>
+              <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/">Inicio</Link>
+              <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Reseñas</a>
+              <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/companies">Empresas</Link>
+              <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Experiencias</a>
             </div>
           </div>
           <div className="flex flex-1 justify-end gap-8">
@@ -169,10 +176,10 @@ const Companies: React.FC = () => {
                     className="flex items-center gap-2 hover:bg-slate-100 rounded-lg px-3 py-2 transition-colors"
                   >
                     <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                      {user.firstName[0]}{user.lastName[0]}
+                      {(user.firstName?.[0] ?? "") + (user.lastName?.[0] ?? "")}
                     </div>
                     <span className="text-slate-700 font-medium">
-                      {user.firstName} {user.lastName}
+                      {(user.firstName ?? "") + " " + (user.lastName ?? "")}
                     </span>
                     <svg 
                       className={`w-4 h-4 text-slate-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
@@ -183,13 +190,13 @@ const Companies: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-
-                  {/* Dropdown Menu */}
                   {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
                       <div className="px-4 py-2 border-b border-slate-200">
-                        <p className="text-sm font-medium text-slate-900">{user.firstName} {user.lastName}</p>
-                        <p className="text-xs text-slate-500">{user.email}</p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {(user.firstName ?? "") + " " + (user.lastName ?? "")}
+                        </p>
+                        <p className="text-xs text-slate-500">{user.email ?? ""}</p>
                       </div>
                       <button
                         onClick={handleGoToProfile}
@@ -247,7 +254,7 @@ const Companies: React.FC = () => {
                     </svg>
                   </div>
                   <input
-                    placeholder="Search companies"
+                    placeholder="Buscar compañías"
                     className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0d141c] focus:outline-0 focus:ring-0 border-none bg-[#e7edf4] focus:border-none h-full placeholder:text-[#49739c] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
                     value={search}
                     onChange={e => setSearch(e.target.value)}
@@ -289,26 +296,26 @@ const Companies: React.FC = () => {
                 ))}
               </select>
             </div>
-            
-            <h2 className="text-[#0d141c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Companies</h2>
-            
+
+            <h2 className="text-[#0d141c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Compañías</h2>
+
             {/* Lista de empresas */}
             {loading && (
-              <div className="p-4 text-center text-[#49739c]">Loading companies...</div>
+              <div className="p-4 text-center text-[#49739c]">Cargando compañías...</div>
             )}
             
             {!loading && filteredCompanies.length === 0 && (
-              <div className="p-4 text-center text-[#49739c]">No companies found.</div>
+              <div className="p-4 text-center text-[#49739c]">No se encontraron compañías.</div>
             )}
             
             {!loading && filteredCompanies.map(company => (
-              <div className="p-4" key={company._id}>
-                <div className="flex items-stretch justify-between gap-4 rounded-lg">
+              <Link to={`/companies/${company.slug}`} key={company._id} className="block p-4 hover:bg-slate-100 rounded-lg transition-colors">
+                <div className="flex items-stretch justify-between gap-4">
                   <div className="flex flex-col gap-1 flex-[2_2_0px]">
                     <p className="text-[#49739c] text-sm font-normal leading-normal">{company.industry}</p>
                     <p className="text-[#0d141c] text-base font-bold leading-tight">{company.name}</p>
                     <p className="text-[#49739c] text-sm font-normal leading-normal">
-                      Average Rating: {company.overallRating || 0} · {company.totalReviews || 0} reviews
+                      Puntuación promedio: {company.overallRating || 0} · {company.totalReviews || 0} reseñas
                     </p>
                     {company.headquarters && (
                       <p className="text-[#49739c] text-xs font-normal leading-normal">
@@ -323,7 +330,7 @@ const Companies: React.FC = () => {
                     ></div>
                   )}
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
