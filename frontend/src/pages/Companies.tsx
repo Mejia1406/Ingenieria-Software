@@ -1,6 +1,6 @@
 // frontend/src/pages/Companies.tsx
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation as useRouterLocation } from "react-router-dom";
 import axios from "axios";
 import WriteReviewModal from "../pages/WriteReview";
 import AuthPage from './Auth';
@@ -42,6 +42,7 @@ const Companies: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const routerLocation = useRouterLocation();
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 
@@ -100,6 +101,12 @@ const Companies: React.FC = () => {
 
     fetchCompanies();
   }, [API_URL]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(routerLocation.search);
+    const searchParam = params.get("search") || "";
+    setSearch(searchParam);
+  }, [routerLocation.search]);
 
   const filteredCompanies = companies.filter(company => {
     const matchesSearch = company.name.toLowerCase().includes(search.toLowerCase());
@@ -169,10 +176,10 @@ const Companies: React.FC = () => {
                     className="flex items-center gap-2 hover:bg-slate-100 rounded-lg px-3 py-2 transition-colors"
                   >
                     <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                      {user.firstName[0]}{user.lastName[0]}
+                      {(user.firstName?.[0] ?? "") + (user.lastName?.[0] ?? "")}
                     </div>
                     <span className="text-slate-700 font-medium">
-                      {user.firstName} {user.lastName}
+                      {(user.firstName ?? "") + " " + (user.lastName ?? "")}
                     </span>
                     <svg 
                       className={`w-4 h-4 text-slate-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
@@ -183,13 +190,13 @@ const Companies: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-
-                  {/* Dropdown Menu */}
                   {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
                       <div className="px-4 py-2 border-b border-slate-200">
-                        <p className="text-sm font-medium text-slate-900">{user.firstName} {user.lastName}</p>
-                        <p className="text-xs text-slate-500">{user.email}</p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {(user.firstName ?? "") + " " + (user.lastName ?? "")}
+                        </p>
+                        <p className="text-xs text-slate-500">{user.email ?? ""}</p>
                       </div>
                       <button
                         onClick={handleGoToProfile}

@@ -134,7 +134,7 @@ import React, { useState, useEffect, useRef } from 'react';
         const handleSearch = (e: React.FormEvent) => {
             e.preventDefault();
             if (searchQuery.trim()) {
-                console.log('Buscando:', searchQuery);
+                navigate(`/companies?search=${encodeURIComponent(searchQuery.trim())}`);
             }
         };
 
@@ -281,7 +281,7 @@ import React, { useState, useEffect, useRef } from 'react';
                                 <div
                                     className="flex min-h-[480px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-lg items-center justify-center p-8"
                                     style={{
-                                        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url("https://responsabilidadempresarial.one/wp-content/uploads/objetivos-clave-de-un-plan.jpg")`
+                                        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url("https://www.sydle.com/blog/assets/post/objetivos-de-una-empresa-mejores-metodos-617303753885651fa20ef5e9/business-goals.jpg")`
                                     }}
                                 >
                                     <div className="flex flex-col gap-2 text-center">
