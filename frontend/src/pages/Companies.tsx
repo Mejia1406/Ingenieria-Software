@@ -31,9 +31,9 @@ interface Company {
 
 const Companies: React.FC = () => {
   const [search, setSearch] = useState("");
-  const [industry, setIndustry] = useState("All");
-  const [location, setLocation] = useState("All");
-  const [size, setSize] = useState("All");
+  const [industry, setIndustry] = useState("Todo");
+  const [location, setLocation] = useState("Todo");
+  const [size, setSize] = useState("Todo");
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAuth, setShowAuth] = useState(false);
@@ -47,9 +47,9 @@ const Companies: React.FC = () => {
 
 
   // Get unique values for filters
-  const industries = ["All", ...Array.from(new Set(companies.map(c => c.industry)))];
-  const locations = ["All", ...Array.from(new Set(companies.map(c => c.headquarters?.city || "").filter(Boolean)))];
-  const sizes = ["All", "1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"];
+  const industries = ["Todo", ...Array.from(new Set(companies.map(c => c.industry)))];
+  const locations = ["Todo", ...Array.from(new Set(companies.map(c => c.headquarters?.city || "").filter(Boolean)))];
+  const sizes = ["Todo", "1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"];
 
   // Load user from localStorage
   useEffect(() => {

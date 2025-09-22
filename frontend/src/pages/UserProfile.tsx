@@ -85,7 +85,7 @@ const UserProfile: React.FC = () => {
     const [basicInfoForm, setBasicInfoForm] = useState({
         firstName: '',
         lastName: '',
-        userType: 'candidate'
+        userType: 'candidato'
     });
 
     const [locationForm, setLocationForm] = useState({
@@ -154,7 +154,7 @@ const UserProfile: React.FC = () => {
                 setBasicInfoForm({
                     firstName: data.data.user.firstName || '',
                     lastName: data.data.user.lastName || '',
-                    userType: data.data.user.userType || 'candidate'
+                    userType: data.data.user.userType || 'candidato'
                 });
                 setLocationForm({
                     city: data.data.user.location?.city || '',
@@ -280,7 +280,7 @@ const UserProfile: React.FC = () => {
                     <h2 className="text-xl font-bold text-gray-900 mb-4">Error</h2>
                     <p className="text-gray-600 mb-6">{error || 'User not found'}</p>
                     <Link to="/" className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                        Go Home
+                        Ir a Inicio
                     </Link>
                 </div>
             </div>
@@ -304,9 +304,9 @@ const UserProfile: React.FC = () => {
                             </Link>
                         </div>
                         <nav className="flex space-x-8">
-                            <Link to="/" className="text-gray-600 hover:text-blue-600">Home</Link>
-                            <Link to="/companies" className="text-gray-600 hover:text-blue-600">Companies</Link>
-                            <Link to="/profile" className="text-blue-600 font-medium">Profile</Link>
+                            <Link to="/" className="text-gray-600 hover:text-blue-600">Inicio</Link>
+                            <Link to="/companies" className="text-gray-600 hover:text-blue-600">Empresas</Link>
+                            <Link to="/profile" className="text-blue-600 font-medium">Perfil</Link>
                         </nav>
                     </div>
                 </div>
@@ -329,7 +329,7 @@ const UserProfile: React.FC = () => {
                                     </h1>
                                     {user.isVerified && (
                                         <span className="bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded-full">
-                                            ✓ Verified
+                                            ✓ Verificado
                                         </span>
                                     )}
                                 </div>
@@ -351,12 +351,12 @@ const UserProfile: React.FC = () => {
                         {/* Basic Information */}
                         <div className="bg-white rounded-lg shadow-sm border p-6">
                             <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-lg font-semibold">Basic Information</h2>
+                                <h2 className="text-lg font-semibold">Información Básica</h2>
                                 <button
                                     onClick={() => setEditBasicInfo(true)}
                                     className="text-blue-600 hover:text-blue-800 text-sm"
                                 >
-                                    Edit
+                                    Editar
                                 </button>
                             </div>
                             <div className="space-y-3">
@@ -365,11 +365,11 @@ const UserProfile: React.FC = () => {
                                     <p className="text-gray-900">{user.email}</p>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium text-gray-600">User Type</label>
+                                    <label className="text-sm font-medium text-gray-600">Tipo de usuario</label>
                                     <p className="text-gray-900 capitalize">{user.userType}</p>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium text-gray-600">Member Since</label>
+                                    <label className="text-sm font-medium text-gray-600">Miembro desde</label>
                                     <p className="text-gray-900">
                                         {new Date(user.createdAt).toLocaleDateString('en-US', {
                                             year: 'numeric',
@@ -384,20 +384,20 @@ const UserProfile: React.FC = () => {
                         {/* Location */}
                         <div className="bg-white rounded-lg shadow-sm border p-6">
                             <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-lg font-semibold">Location</h2>
+                                <h2 className="text-lg font-semibold">Ubicación</h2>
                                 <button
                                     onClick={() => setEditLocation(true)}
                                     className="text-blue-600 hover:text-blue-800 text-sm"
                                 >
-                                    Edit
+                                    Editar
                                 </button>
                             </div>
                             <div className="space-y-2">
                                 <p className="text-gray-900">
-                                    {user.location?.city || 'City not specified'}
+                                    {user.location?.city || 'Ciudad no especificada'}
                                 </p>
                                 <p className="text-gray-600">
-                                    {user.location?.country || 'Country not specified'}
+                                    {user.location?.country || 'País no especificado'}
                                 </p>
                             </div>
                         </div>
@@ -405,12 +405,12 @@ const UserProfile: React.FC = () => {
                         {/* Skills */}
                         <div className="bg-white rounded-lg shadow-sm border p-6">
                             <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-lg font-semibold">Skills</h2>
+                                <h2 className="text-lg font-semibold">Habilidades</h2>
                                 <button
                                     onClick={() => setEditSkills(true)}
                                     className="text-blue-600 hover:text-blue-800 text-sm"
                                 >
-                                    Edit
+                                    Editar
                                 </button>
                             </div>
                             <div className="flex flex-wrap gap-2">
@@ -424,7 +424,7 @@ const UserProfile: React.FC = () => {
                                         </span>
                                     ))
                                 ) : (
-                                    <p className="text-gray-500">No skills added yet</p>
+                                    <p className="text-gray-500">No se han agregado habilidades aún</p>
                                 )}
                             </div>
                         </div>
@@ -435,12 +435,12 @@ const UserProfile: React.FC = () => {
                         {/* Professional Summary */}
                         <div className="bg-white rounded-lg shadow-sm border p-6">
                             <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-lg font-semibold">Professional Summary</h2>
+                                <h2 className="text-lg font-semibold">Resumen Profesional</h2>
                                 <button
                                     onClick={() => setEditSummary(true)}
                                     className="text-blue-600 hover:text-blue-800 text-sm"
                                 >
-                                    Edit
+                                    Editar
                                 </button>
                             </div>
                             <div>
@@ -448,7 +448,7 @@ const UserProfile: React.FC = () => {
                                     <p className="text-gray-700 leading-relaxed">{user.professionalSummary}</p>
                                 ) : (
                                     <p className="text-gray-500 italic">
-                                        Add a professional summary to tell others about your background and goals.
+                                        Agrega un resumen profesional para contarles a otros sobre tu experiencia y objetivos.
                                     </p>
                                 )}
                             </div>
@@ -457,12 +457,12 @@ const UserProfile: React.FC = () => {
                         {/* Work Experience */}
                         <div className="bg-white rounded-lg shadow-sm border p-6">
                             <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-lg font-semibold">Work Experience</h2>
+                                <h2 className="text-lg font-semibold">Experiencia Laboral</h2>
                                 <button
                                     onClick={() => setEditExperience(true)}
                                     className="text-blue-600 hover:text-blue-800 text-sm"
                                 >
-                                    Add Experience
+                                    Agregar Experiencia
                                 </button>
                             </div>
                             <div className="space-y-4">
@@ -473,7 +473,7 @@ const UserProfile: React.FC = () => {
                                             <p className="text-blue-600">{exp.company}</p>
                                             <p className="text-sm text-gray-600">
                                                 {new Date(exp.startDate).toLocaleDateString()} - {
-                                                    exp.endDate ? new Date(exp.endDate).toLocaleDateString() : 'Present'
+                                                    exp.endDate ? new Date(exp.endDate).toLocaleDateString() : 'Presente'
                                                 }
                                             </p>
                                             {exp.description && (
@@ -482,7 +482,7 @@ const UserProfile: React.FC = () => {
                                         </div>
                                     ))
                                 ) : (
-                                    <p className="text-gray-500 italic">No work experience added yet.</p>
+                                    <p className="text-gray-500 italic">No se ha agregado experiencia laboral aún.</p>
                                 )}
                             </div>
                         </div>
@@ -490,12 +490,12 @@ const UserProfile: React.FC = () => {
                         {/* Education */}
                         <div className="bg-white rounded-lg shadow-sm border p-6">
                             <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-lg font-semibold">Education</h2>
+                                <h2 className="text-lg font-semibold">Educación</h2>
                                 <button
                                     onClick={() => setEditEducation(true)}
                                     className="text-blue-600 hover:text-blue-800 text-sm"
                                 >
-                                    Add Education
+                                    Agregar Educación
                                 </button>
                             </div>
                             <div className="space-y-4">
@@ -505,12 +505,12 @@ const UserProfile: React.FC = () => {
                                             <h3 className="font-medium text-gray-900">{edu.degree}</h3>
                                             <p className="text-green-600">{edu.institution}</p>
                                             <p className="text-sm text-gray-600">
-                                                {edu.fieldOfStudy} • Class of {edu.graduationYear}
+                                                {edu.fieldOfStudy} • Clase de {edu.graduationYear}
                                             </p>
                                         </div>
                                     ))
                                 ) : (
-                                    <p className="text-gray-500 italic">No education added yet.</p>
+                                    <p className="text-gray-500 italic">No se ha agregado educación aún.</p>
                                 )}
                             </div>
                         </div>
@@ -524,7 +524,7 @@ const UserProfile: React.FC = () => {
             <EditModal isOpen={editBasicInfo} onClose={() => setEditBasicInfo(false)} title="Edit Basic Information">
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1"> Nombre</label>
                         <input
                             type="text"
                             value={basicInfoForm.firstName}
@@ -533,7 +533,7 @@ const UserProfile: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
                         <input
                             type="text"
                             value={basicInfoForm.lastName}
@@ -542,15 +542,15 @@ const UserProfile: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">User Type</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Usuario</label>
                         <select
                             value={basicInfoForm.userType}
                             onChange={(e) => setBasicInfoForm({ ...basicInfoForm, userType: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
-                            <option value="candidate">Job Candidate</option>
-                            <option value="employee">Current/Former Employee</option>
-                            <option value="recruiter">Recruiter</option>
+                            <option value="candidate">Trabajo Candidato</option>
+                            <option value="employee">Empleado Actual/Anterior</option>
+                            <option value="recruiter">Reclutador</option>
                         </select>
                     </div>
                     <div className="flex gap-3 pt-4">
@@ -558,13 +558,13 @@ const UserProfile: React.FC = () => {
                             onClick={handleSaveBasicInfo}
                             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                         >
-                            Save Changes
+                            Guardar cambios
                         </button>
                         <button
                             onClick={() => setEditBasicInfo(false)}
                             className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                         >
-                            Cancel
+                            Cancelar
                         </button>
                     </div>
                 </div>
@@ -574,7 +574,7 @@ const UserProfile: React.FC = () => {
             <EditModal isOpen={editLocation} onClose={() => setEditLocation(false)} title="Edit Location">
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
                         <input
                             type="text"
                             value={locationForm.city}
@@ -583,7 +583,7 @@ const UserProfile: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">País</label>
                         <input
                             type="text"
                             value={locationForm.country}
@@ -596,13 +596,13 @@ const UserProfile: React.FC = () => {
                             onClick={handleSaveLocation}
                             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                         >
-                            Save Changes
+                            Guardar cambios
                         </button>
                         <button
                             onClick={() => setEditLocation(false)}
                             className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                         >
-                            Cancel
+                            Cancelar
                         </button>
                     </div>
                 </div>
@@ -612,29 +612,29 @@ const UserProfile: React.FC = () => {
             <EditModal isOpen={editSummary} onClose={() => setEditSummary(false)} title="Edit Professional Summary">
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Professional Summary</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Resumen Profesional</label>
                         <textarea
                             value={summaryForm}
                             onChange={(e) => setSummaryForm(e.target.value)}
                             rows={6}
                             maxLength={1000}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Tell us about your professional background, goals, and what makes you unique..."
+                            placeholder="Cuéntanos sobre tu experiencia profesional, objetivos y qué te hace único..."
                         />
-                        <p className="text-sm text-gray-500 mt-1">{summaryForm.length}/1000 characters</p>
+                        <p className="text-sm text-gray-500 mt-1">{summaryForm.length}/1000 caracteres</p>
                     </div>
                     <div className="flex gap-3 pt-4">
                         <button
                             onClick={handleSaveSummary}
                             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                         >
-                            Save Changes
+                            Guardar cambios
                         </button>
                         <button
                             onClick={() => setEditSummary(false)}
                             className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                         >
-                            Cancel
+                            Cancelar
                         </button>
                     </div>
                 </div>
@@ -644,7 +644,7 @@ const UserProfile: React.FC = () => {
             <EditModal isOpen={editSkills} onClose={() => setEditSkills(false)} title="Edit Skills">
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Add New Skill</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Agregar Nueva Habilidad</label>
                         <div className="flex gap-2">
                             <input
                                 type="text"
@@ -658,12 +658,12 @@ const UserProfile: React.FC = () => {
                                 onClick={addSkill}
                                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                             >
-                                Add
+                                Agregar
                             </button>
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Current Skills</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Habilidades Actuales</label>
                         <div className="flex flex-wrap gap-2">
                             {skillsForm.map((skill, index) => (
                                 <span
@@ -686,13 +686,13 @@ const UserProfile: React.FC = () => {
                             onClick={handleSaveSkills}
                             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                         >
-                            Save Changes
+                            Guardar Cambios
                         </button>
                         <button
                             onClick={() => setEditSkills(false)}
                             className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                         >
-                            Cancel
+                            Cancelar
                         </button>
                     </div>
                 </div>
@@ -702,7 +702,7 @@ const UserProfile: React.FC = () => {
             <EditModal isOpen={editExperience} onClose={() => setEditExperience(false)} title="Add Work Experience">
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Compañia</label>
                         <input
                             type="text"
                             value={experienceForm.company}
@@ -711,7 +711,7 @@ const UserProfile: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Posición</label>
                         <input
                             type="text"
                             value={experienceForm.position}
@@ -721,7 +721,7 @@ const UserProfile: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Inicio</label>
                             <input
                                 type="date"
                                 value={experienceForm.startDate}
@@ -730,7 +730,7 @@ const UserProfile: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Fin</label>
                             <input
                                 type="date"
                                 value={experienceForm.endDate}
@@ -740,7 +740,7 @@ const UserProfile: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                         <textarea
                             value={experienceForm.description}
                             onChange={(e) => setExperienceForm({ ...experienceForm, description: e.target.value })}
@@ -754,23 +754,23 @@ const UserProfile: React.FC = () => {
                             onClick={handleAddExperience}
                             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                         >
-                            Add Experience
+                            Agregar Experiencia
                         </button>
                         <button
                             onClick={() => setEditExperience(false)}
                             className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                         >
-                            Cancel
+                            Cancelar
                         </button>
                     </div>
                 </div>
             </EditModal>
 
             {/* Add Education Modal */}
-            <EditModal isOpen={editEducation} onClose={() => setEditEducation(false)} title="Add Education">
+            <EditModal isOpen={editEducation} onClose={() => setEditEducation(false)} title="Agregar Educación">
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Institution</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Institución</label>
                         <input
                             type="text"
                             value={educationForm.institution}
@@ -779,7 +779,7 @@ const UserProfile: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Degree</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Grado</label>
                         <input
                             type="text"
                             value={educationForm.degree}
@@ -789,7 +789,7 @@ const UserProfile: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Field of Study</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Campo de Estudio</label>
                         <input
                             type="text"
                             value={educationForm.fieldOfStudy}
@@ -799,7 +799,7 @@ const UserProfile: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Graduation Year</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Año de Graduación</label>
                         <input
                             type="number"
                             min="1950"
@@ -814,13 +814,13 @@ const UserProfile: React.FC = () => {
                             onClick={handleAddEducation}
                             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                         >
-                            Add Education
+                            Agregar Educación
                         </button>
                         <button
                             onClick={() => setEditEducation(false)}
                             className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                         >
-                            Cancel
+                            Cancelar
                         </button>
                     </div>
                 </div>
