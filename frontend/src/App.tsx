@@ -17,7 +17,7 @@ function App() {
         <Route path="/write-review" element={<WriteReview isOpen={false} onClose={function (): void {
           throw new Error('Function not implemented.');
         } } user={null}/>} />
-        <Route path="/companies/:companyId" element={<CompanyDetail />} />
+  <Route path="/companies/:slug" element={<CompanyDetail />} />
       </Routes>
     </Router>
   );

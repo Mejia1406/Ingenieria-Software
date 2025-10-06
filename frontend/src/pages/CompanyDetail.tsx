@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import axios from 'axios';
 import AuthPage from "./Auth";
 import WriteReviewModal from "./WriteReview";
 
@@ -21,12 +22,18 @@ interface Company {
 
 interface Review {
   _id: string;
-  user: { name: string; avatar: string };
-  rating: number;
-  date: string;
-  text: string;
-  likes: number;
-  dislikes: number;
+  author?: {
+    firstName?: string;
+    lastName?: string;
+    userType?: string;
+    isVerified?: boolean;
+  };
+  overallRating?: number; // backend naming
+  title?: string;
+  jobTitle?: string;
+  createdAt?: string;
+  recommendation?: { wouldRecommend?: boolean };
+  content?: string;
 }
 
 // Agrega la interfaz User si no la tienes ya
@@ -39,22 +46,22 @@ interface User {
   isVerified: boolean;
 }
 
-// Simulación de distribución de estrellas (puedes traerlo de tu API)
-const ratingDistribution = [
-  { star: 5, percent: 40 },
-  { star: 4, percent: 30 },
-  { star: 3, percent: 15 },
-  { star: 2, percent: 5 },
-  { star: 1, percent: 10 },
-];
+interface RatingBucket { star: number; count: number; percent: number; }
 
 const CompanyDetail: React.FC = () => {
-  const { companyId } = useParams();
+  const { slug } = useParams();
   const [company, setCompany] = useState<Company | null>(null);
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [recentReviews, setRecentReviews] = useState<Review[]>([]);
+  const [allReviews, setAllReviews] = useState<Review[]>([]);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [reviewsTotal, setReviewsTotal] = useState(0);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [showWriteReview, setShowWriteReview] = useState(false);
+  const [loadingCompany, setLoadingCompany] = useState(false);
+  const [companyError, setCompanyError] = useState<string | null>(null);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
@@ -84,23 +91,100 @@ const CompanyDetail: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+  // Fetch company and its recent reviews
   useEffect(() => {
-    fetch(`http://localhost:5000/api/companies/${companyId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.data && data.data.company) {
-          setCompany(data.data.company);
+    if (!slug) return;
+    const controller = new AbortController();
+    const load = async () => {
+      setLoadingCompany(true);
+      setCompanyError(null);
+      try {
+        const res = await axios.get(`${API_URL}/companies/${slug}`, { signal: controller.signal });
+        if (res.data?.success && res.data.data?.company) {
+          setCompany(res.data.data.company);
+          setRecentReviews(res.data.data.recentReviews || []);
           setNotFound(false);
         } else {
-          setCompany(null);
           setNotFound(true);
         }
-      })
-      .catch(() => {
+      } catch (err: any) {
+        if (axios.isCancel(err)) return;
         setCompany(null);
+        setCompanyError('Error cargando la empresa');
         setNotFound(true);
+      } finally {
+        setLoadingCompany(false);
+      }
+    };
+    load();
+    return () => controller.abort();
+  }, [slug, API_URL]);
+
+  // Fetch paginated reviews (beyond recent) for distribution and listing
+  const fetchReviews = useCallback(async (page: number) => {
+    if (!slug) return;
+    setReviewsLoading(true);
+    setReviewsError(null);
+    try {
+      const res = await axios.get(`${API_URL}/companies/${slug}/reviews`, {
+        params: { page, limit: 20, sortBy: 'createdAt', sortOrder: 'desc' }
       });
-  }, [companyId]);
+      if (res.data?.success) {
+        const data = res.data.data;
+        setAllReviews(prev => page === 1 ? data.reviews : [...prev, ...data.reviews]);
+        setReviewsTotal(data.pagination.total);
+      } else {
+        setReviewsError('No se pudieron cargar las reseñas');
+      }
+    } catch (err) {
+      setReviewsError('Error de red al cargar reseñas');
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [slug, API_URL]);
+
+  useEffect(() => {
+    setAllReviews([]);
+    setReviewsPage(1);
+    if (slug) fetchReviews(1);
+  }, [slug, fetchReviews]);
+
+  const handleLoadMoreReviews = () => {
+    const next = reviewsPage + 1;
+    setReviewsPage(next);
+    fetchReviews(next);
+  };
+
+  // Combined reviews for distribution (prefer allReviews, fallback to recent)
+  const reviewsForStats = allReviews.length ? allReviews : recentReviews;
+
+  const ratingDistribution: RatingBucket[] = useMemo(() => {
+    const buckets: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    reviewsForStats.forEach(r => {
+      const val = r.overallRating;
+      if (val && val >= 1 && val <= 5) buckets[val] += 1;
+    });
+    const total = Object.values(buckets).reduce((a, b) => a + b, 0) || 0;
+    return (Object.entries(buckets)
+      .sort((a,b) => Number(b[0]) - Number(a[0])) as [string, number][]) // ensure 5..1
+      .map(([star, count]) => ({
+        star: Number(star),
+        count,
+        percent: total ? Math.round((count / total) * 100) : 0
+      }));
+  }, [reviewsForStats]);
+
+  // Average y total estrictamente basados en las reviews aprobadas cargadas
+  const { averageRating, totalApproved } = useMemo(() => {
+    if (!reviewsForStats.length) return { averageRating: 0, totalApproved: 0 };
+    const sum = reviewsForStats.reduce((acc, r) => acc + (r.overallRating || 0), 0);
+    return {
+      averageRating: Number((sum / reviewsForStats.length).toFixed(1)),
+      totalApproved: reviewsForStats.length
+    };
+  }, [reviewsForStats]);
 
   // Agrega este useEffect para cargar el usuario desde localStorage
   useEffect(() => {
@@ -124,12 +208,53 @@ const CompanyDetail: React.FC = () => {
     localStorage.setItem('token', token);
   };
 
-  if (notFound) {
-    return <div className="p-10">Empresa no encontrada.</div>;
-  }
-  if (!company) {
-    return <div className="p-10">Cargando empresa...</div>;
-  }
+  if (loadingCompany) return (
+    <div className="p-10 animate-pulse space-y-8">
+      <div className="flex items-start gap-6">
+        <div className="w-40 h-40 bg-slate-200 rounded-xl" />
+        <div className="flex-1 space-y-4">
+          <div className="h-6 w-1/3 bg-slate-200 rounded" />
+          <div className="h-4 w-2/5 bg-slate-200 rounded" />
+          <div className="h-4 w-1/4 bg-slate-200 rounded" />
+          <div className="flex gap-4 pt-2">
+            <div className="h-8 w-24 bg-slate-200 rounded" />
+            <div className="h-8 w-24 bg-slate-200 rounded" />
+          </div>
+        </div>
+      </div>
+      <div className="space-y-3">
+        <div className="h-5 w-24 bg-slate-200 rounded" />
+        <div className="grid grid-cols-[60px_1fr_40px] gap-y-3 items-center max-w-md">
+          {[...Array(5)].map((_,i) => (
+            <React.Fragment key={i}>
+              <div className="h-4 w-4 bg-slate-200 rounded" />
+              <div className="h-2 w-full bg-slate-200 rounded" />
+              <div className="h-4 w-8 bg-slate-200 rounded" />
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-4">
+        {[...Array(3)].map((_,i) => (
+          <div key={i} className="space-y-3 border border-slate-200 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-slate-200 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-32 bg-slate-200 rounded" />
+                <div className="h-3 w-20 bg-slate-200 rounded" />
+              </div>
+              <div className="h-4 w-10 bg-slate-200 rounded" />
+            </div>
+            <div className="h-3 w-3/4 bg-slate-200 rounded" />
+            <div className="h-3 w-2/3 bg-slate-200 rounded" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+  if (notFound) return <div className="p-10 text-red-600">Empresa no encontrada.</div>;
+  if (companyError) return <div className="p-10 text-red-600">{companyError}</div>;
+  if (!company) return null;
 
   return (
     <div className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden" style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}>
@@ -257,7 +382,6 @@ const CompanyDetail: React.FC = () => {
           <div className="pb-3">
             <div className="flex border-b border-[#cedbe8] px-4 gap-8">
               <a className="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#49739c] pb-[13px] pt-4" href="#">
-                <p className="text-[#49739c] text-sm font-bold leading-normal tracking-[0.015em]">Experiences</p>
               </a>
               <a className="flex flex-col items-center justify-center border-b-[3px] border-b-[#0d80f2] text-[#0d141c] pb-[13px] pt-4" href="#">
                 <p className="text-[#0d141c] text-sm font-bold leading-normal tracking-[0.015em]">Reviews</p>
@@ -275,70 +399,41 @@ const CompanyDetail: React.FC = () => {
           <div className="flex flex-wrap gap-x-8 gap-y-6 p-4">
             {/* Overrating y barras */}
             <div className="flex flex-col gap-2">
-              <p className="text-[#0d141c] text-4xl font-black leading-tight tracking-[-0.033em]">{company.overallRating}</p>
+              <p className="text-[#0d141c] text-4xl font-black leading-tight tracking-[-0.033em]">{averageRating}</p>
               <div className="flex gap-0.5">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className={i < Math.round(company.overallRating) ? "text-[#0d80f2]" : "text-[#cedbe8]"}>
+                  <div key={i} className={i < Math.round(averageRating) ? "text-[#0d80f2]" : "text-[#cedbe8]"}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" fill="currentColor" viewBox="0 0 256 256">
                       <path d="M234.5,114.38l-45.1,39.36,13.51,58.6a16,16,0,0,1-23.84,17.34l-51.11-31-51,31a16,16,0,0,1-23.84-17.34L66.61,153.8,21.5,114.38a16,16,0,0,1,9.11-28.06l59.46-5.15,23.21-55.36a15.95,15.95,0,0,1,29.44,0h0L166,81.17l59.44,5.15a16,16,0,0,1,9.11,28.06Z"></path>
                     </svg>
                   </div>
                 ))}
               </div>
-              <p className="text-[#0d141c] text-base font-normal leading-normal">{company.totalReviews} reviews</p>
+              <p className="text-[#0d141c] text-base font-normal leading-normal">{totalApproved} reviews</p>
             </div>
             <div className="grid min-w-[200px] max-w-[400px] flex-1 grid-cols-[20px_1fr_40px] items-center gap-y-3">
-              {ratingDistribution.map((item) => (
+              {ratingDistribution.map(item => (
                 <React.Fragment key={item.star}>
                   <p className="text-[#0d141c] text-sm font-normal leading-normal">{item.star}</p>
                   <div className="flex h-2 flex-1 overflow-hidden rounded-full bg-[#cedbe8]">
-                    <div className="rounded-full bg-[#0d80f2]" style={{ width: `${item.percent}%` }}></div>
+                    <div className="rounded-full bg-[#0d80f2] transition-all" style={{ width: `${item.percent}%` }}></div>
                   </div>
                   <p className="text-[#49739c] text-sm font-normal leading-normal text-right">{item.percent}%</p>
                 </React.Fragment>
               ))}
             </div>
           </div>
-          {/* Reviews */}
-          <div className="flex flex-col gap-8 overflow-x-hidden bg-slate-50 p-4">
-            {reviews.map((review) => (
-              <div key={review._id} className="flex flex-col gap-3 bg-slate-50">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-                    style={{ backgroundImage: `url("${review.user.avatar}")` }}
-                  ></div>
-                  <div className="flex-1">
-                    <p className="text-[#0d141c] text-base font-medium leading-normal">{review.user.name}</p>
-                    <p className="text-[#49739c] text-sm font-normal leading-normal">{review.date}</p>
-                  </div>
-                </div>
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className={i < review.rating ? "text-[#0d80f2]" : "text-[#acc2d8]"}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M234.5,114.38l-45.1,39.36,13.51,58.6a16,16,0,0,1-23.84,17.34l-51.11-31-51,31a16,16,0,0,1-23.84-17.34L66.61,153.8,21.5,114.38a16,16,0,0,1,9.11-28.06l59.46-5.15,23.21-55.36a15.95,15.95,0,0,1,29.44,0h0L166,81.17l59.44,5.15a16,16,0,0,1,9.11,28.06Z"></path>
-                      </svg>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-[#0d141c] text-base font-normal leading-normal">{review.text}</p>
-                <div className="flex gap-9 text-[#49739c]">
-                  <button className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                      <path d="M234,80.12A24,24,0,0,0,216,72H160V56a40,40,0,0,0-40-40,8,8,0,0,0-7.16,4.42L75.06,96H32a16,16,0,0,0-16,16v88a16,16,0,0,0,16,16H204a24,24,0,0,0,23.82-21l12-96A24,24,0,0,0,234,80.12ZM32,112H72v88H32ZM223.94,97l-12,96a8,8,0,0,1-7.94,7H88V105.89l36.71-73.43A24,24,0,0,1,144,56V80a8,8,0,0,0,8,8h64a8,8,0,0,1,7.94,9Z"></path>
-                    </svg>
-                    <p>{review.likes}</p>
-                  </button>
-                  <button className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                      <path d="M239.82,157l-12-96A24,24,0,0,0,204,40H32A16,16,0,0,0,16,56v88a16,16,0,0,0,16,16H75.06l37.78,75.58A8,8,0,0,0,120,240a40,40,0,0,0,40-40V184h56a24,24,0,0,0,23.82-27ZM72,144H32V56H72Zm150,21.29a7.88,7.88,0,0,1-6,2.71H152a8,8,0,0,0-8,8v24a24,24,0,0,1-19.29,23.54L88,150.11V56H204a8,8,0,0,1,7.94,7l12,96A7.87,7.87,0,0,1,222,165.29Z"></path>
-                    </svg>
-                    <p>{review.dislikes}</p>
-                  </button>
-                </div>
-              </div>
+          {/* Reviews dinámicas */}
+          <div className="flex flex-col gap-6 overflow-x-hidden bg-slate-50 p-4">
+            {recentReviews.length === 0 && reviewsLoading && <p className="text-[#49739c]">Cargando reseñas...</p>}
+            {reviewsError && <p className="text-red-600">{reviewsError}</p>}
+            {(allReviews.length ? allReviews : recentReviews).map(r => (
+              <ReviewCard key={r._id} review={r} />
             ))}
+            { (allReviews.length < reviewsTotal) && !reviewsLoading && (
+              <button onClick={handleLoadMoreReviews} className="self-center px-4 py-2 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline">Cargar más reseñas</button>
+            )}
+            {reviewsLoading && allReviews.length > 0 && <p className="text-[#49739c] text-center text-sm">Cargando más...</p>}
           </div>
         </div>
       </div>
@@ -362,3 +457,46 @@ const CompanyDetail: React.FC = () => {
 };
 
 export default CompanyDetail;
+
+// Componente de tarjeta de reseña con truncado de contenido
+const ReviewCard: React.FC<{ review: Review }> = ({ review }) => {
+  const [expanded, setExpanded] = useState(false);
+  const MAX = 260;
+  const body = review.content || '';
+  const isLong = body.length > MAX;
+  const display = expanded || !isLong ? body : body.slice(0, MAX) + '…';
+
+  return (
+    <div className="flex flex-col gap-3 rounded-lg bg-white border border-slate-200 p-4">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xs font-semibold">
+          {(review.author?.firstName?.[0] || '') + (review.author?.lastName?.[0] || '') || 'U'}
+        </div>
+        <div className="flex-1">
+          <p className="text-[#0d141c] text-sm font-semibold leading-normal">{review.author?.firstName || ''} {review.author?.lastName || ''}</p>
+          <p className="text-[#49739c] text-[11px] leading-normal">{review.jobTitle || 'Empleado'} · {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : ''}</p>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-[#0d80f2] text-sm font-semibold">{review.overallRating?.toFixed(1) || '—'}</span>
+          <div className="flex gap-0.5">
+            {[...Array(5)].map((_, i) => (
+              <svg key={i} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256" className={i < (review.overallRating || 0) ? 'text-[#0d80f2]' : 'text-[#cedbe8]'} fill="currentColor"><path d="M234.5,114.38l-45.1,39.36,13.51,58.6a16,16,0,0,1-23.84,17.34l-51.11-31-51,31a16,16,0,0,1-23.84-17.34L66.61,153.8,21.5,114.38a16,16,0,0,1,9.11-28.06l59.46-5.15,23.21-55.36a15.95,15.95,0,0,1,29.44,0h0L166,81.17l59.44,5.15a16,16,0,0,1,9.11,28.06Z"/></svg>
+            ))}
+          </div>
+        </div>
+      </div>
+      {review.title && <h3 className="text-sm font-semibold text-slate-800">{review.title}</h3>}
+      {body && (
+        <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+          {display}
+          {isLong && (
+            <button onClick={() => setExpanded(e => !e)} className="ml-1 text-blue-600 hover:underline text-xs font-medium">{expanded ? 'Ver menos' : 'Ver más'}</button>
+          )}
+        </p>
+      )}
+      <div className="flex gap-2 text-xs text-[#49739c]">
+        {review.recommendation?.wouldRecommend && <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-medium">Recomienda</span>}
+      </div>
+    </div>
+  );
+};
