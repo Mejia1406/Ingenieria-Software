@@ -11,3 +11,85 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* === Animations Custom === */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(18px); }
+  60% { opacity: 1; }
+  100% { transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  0% { opacity: 0; transform: scale(.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulseSoft {
+  0%,100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.35); }
+  70% { box-shadow: 0 0 0 8px rgba(59,130,246,0); }
+}
+
+@keyframes staggerFadeUp {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Utility classes (no Tailwind config edit) */
+.anim-fade-in { animation: fadeIn .6s ease forwards; }
+.anim-fade-up { animation: fadeUp .65s cubic-bezier(.16,.84,.44,1) forwards; }
+.anim-scale-in { animation: scaleIn .35s ease-out forwards; }
+
+/* Delay helpers */
+.anim-delay-1 { animation-delay: .05s; }
+.anim-delay-2 { animation-delay: .1s; }
+.anim-delay-3 { animation-delay: .15s; }
+.anim-delay-4 { animation-delay: .2s; }
+.anim-delay-5 { animation-delay: .25s; }
+.anim-delay-6 { animation-delay: .3s; }
+
+/* Shimmer background for CTA highlight */
+.shimmer {
+  background-image: linear-gradient(110deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.55) 20%, rgba(255,255,255,0.15) 40%);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+/* Soft pulsing ring (can be applied to floating buttons) */
+.pulse-ring { position: relative; }
+.pulse-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  animation: pulseSoft 3s ease-out infinite;
+}
+
+/* Stagger container: children animate with incremental delay */
+.stagger-fade-up > * { opacity: 0; }
+.stagger-fade-up > *:nth-child(1) { animation: staggerFadeUp .55s .05s cubic-bezier(.16,.84,.44,1) forwards; }
+.stagger-fade-up > *:nth-child(2) { animation: staggerFadeUp .55s .1s cubic-bezier(.16,.84,.44,1) forwards; }
+.stagger-fade-up > *:nth-child(3) { animation: staggerFadeUp .55s .15s cubic-bezier(.16,.84,.44,1) forwards; }
+.stagger-fade-up > *:nth-child(4) { animation: staggerFadeUp .55s .2s cubic-bezier(.16,.84,.44,1) forwards; }
+.stagger-fade-up > *:nth-child(5) { animation: staggerFadeUp .55s .25s cubic-bezier(.16,.84,.44,1) forwards; }
+.stagger-fade-up > *:nth-child(6) { animation: staggerFadeUp .55s .3s cubic-bezier(.16,.84,.44,1) forwards; }
+
+/* Reduced motion respect */
+@media (prefers-reduced-motion: reduce) {
+  .anim-fade-in,
+  .anim-fade-up,
+  .anim-scale-in,
+  .pulse-ring::after,
+  .shimmer,
+  .stagger-fade-up > * { animation: none !important; opacity: 1 !important; transform: none !important; }
+}

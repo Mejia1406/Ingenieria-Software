@@ -198,9 +198,8 @@ const CompanySchema: Schema = new Schema({
     timestamps: true
 });
 
-// Indexes for performance and search
+// Indexes for performance and search - REMOVED DUPLICATE SLUG INDEX
 CompanySchema.index({ name: 'text', description: 'text' });
-CompanySchema.index({ slug: 1 });
 CompanySchema.index({ industry: 1 });
 CompanySchema.index({ 'headquarters.city': 1, 'headquarters.country': 1 });
 CompanySchema.index({ overallRating: -1 });

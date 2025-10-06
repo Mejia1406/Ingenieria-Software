@@ -148,8 +148,7 @@ const UserSchema: Schema = new Schema({
     timestamps: true
 });
 
-// Indexes for performance
-UserSchema.index({ email: 1 });
+// Indexes for performance - REMOVED DUPLICATE EMAIL INDEX
 UserSchema.index({ userType: 1 });
 UserSchema.index({ 'location.city': 1, 'location.country': 1 });
 UserSchema.index({ reputation: -1 });
