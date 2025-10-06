@@ -57,6 +57,8 @@ const CompanyDetail: React.FC = () => {
   const [reviewsTotal, setReviewsTotal] = useState(0);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewsError, setReviewsError] = useState<string | null>(null);
+  // Filtro de rating seleccionado (1-5) o null para todos
+  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [showWriteReview, setShowWriteReview] = useState(false);
@@ -129,7 +131,7 @@ const CompanyDetail: React.FC = () => {
     setReviewsError(null);
     try {
       const res = await axios.get(`${API_URL}/companies/${slug}/reviews`, {
-        params: { page, limit: 20, sortBy: 'createdAt', sortOrder: 'desc' }
+        params: { page, limit: 20, sortBy: 'createdAt', sortOrder: 'desc', rating: ratingFilter || undefined }
       });
       if (res.data?.success) {
         const data = res.data.data;
@@ -143,13 +145,14 @@ const CompanyDetail: React.FC = () => {
     } finally {
       setReviewsLoading(false);
     }
-  }, [slug, API_URL]);
+  }, [slug, API_URL, ratingFilter]);
 
   useEffect(() => {
+    // Reinicia la paginación cuando cambia el slug o el filtro de rating
     setAllReviews([]);
     setReviewsPage(1);
     if (slug) fetchReviews(1);
-  }, [slug, fetchReviews]);
+  }, [slug, ratingFilter, fetchReviews]);
 
   const handleLoadMoreReviews = () => {
     const next = reviewsPage + 1;
@@ -421,6 +424,33 @@ const CompanyDetail: React.FC = () => {
                   <p className="text-[#49739c] text-sm font-normal leading-normal text-right">{item.percent}%</p>
                 </React.Fragment>
               ))}
+            </div>
+            {/* Filtros por estrellas */}
+            <div className="flex flex-col gap-2 min-w-[160px]">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Filtrar por estrellas</p>
+              <div className="flex flex-wrap gap-2">
+                {[5,4,3,2,1].map(star => {
+                  const active = ratingFilter === star;
+                  const bucket = ratingDistribution.find(b => b.star === star);
+                  return (
+                    <button
+                      key={star}
+                      onClick={() => setRatingFilter(prev => prev === star ? null : star)}
+                      className={`flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${active ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-300 text-slate-700 hover:border-blue-500 hover:text-blue-600'}`}
+                    >
+                      <span>{star}</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 256 256" fill="currentColor" className={active ? 'text-white' : 'text-yellow-500'}><path d="M234.5,114.38l-45.1,39.36,13.51,58.6a16,16,0,0,1-23.84,17.34l-51.11-31-51,31a16,16,0,0,1-23.84-17.34L66.61,153.8,21.5,114.38a16,16,0,0,1,9.11-28.06l59.46-5.15,23.21-55.36a15.95,15.95,0,0,1,29.44,0h0L166,81.17l59.44,5.15a16,16,0,0,1,9.11,28.06Z"/></svg>
+                      <span className="text-[10px] text-slate-500 font-normal">{bucket?.count ?? 0}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {ratingFilter && (
+                <button
+                  onClick={() => setRatingFilter(null)}
+                  className="self-start text-xs text-blue-600 hover:underline font-medium"
+                >Quitar filtro</button>
+              )}
             </div>
           </div>
           {/* Reviews dinámicas */}
