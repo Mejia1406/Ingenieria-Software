@@ -34,6 +34,12 @@ interface Review {
   createdAt?: string;
   recommendation?: { wouldRecommend?: boolean };
   content?: string;
+  helpfulVotes?: number;
+  unhelpfulVotes?: number;
+  totalVotes?: number;
+  userVote?: 'helpful' | 'unhelpful' | null;
+  isVisible?: boolean;
+  moderationStatus?: string;
 }
 
 // Agrega la interfaz User si no la tienes ya
@@ -52,6 +58,7 @@ const CompanyDetail: React.FC = () => {
   const { slug } = useParams();
   const [company, setCompany] = useState<Company | null>(null);
   const [recentReviews, setRecentReviews] = useState<Review[]>([]);
+  // Lista completa de reviews aprobadas (sin filtrar por estrellas)
   const [allReviews, setAllReviews] = useState<Review[]>([]);
   const [reviewsPage, setReviewsPage] = useState(1);
   const [reviewsTotal, setReviewsTotal] = useState(0);
@@ -135,18 +142,19 @@ const CompanyDetail: React.FC = () => {
   }, [slug, API_URL]);
 
   // Fetch paginated reviews (beyond recent) for distribution and listing
-  const fetchReviews = useCallback(async (page: number) => {
-    if (!slug) return;
+  const fetchReviews = useCallback(async (_page: number) => {
+    if (!company?._id) return;
     setReviewsLoading(true);
     setReviewsError(null);
     try {
-      const res = await axios.get(`${API_URL}/companies/${slug}/reviews`, {
-        params: { page, limit: 20, sortBy: 'createdAt', sortOrder: 'desc', rating: ratingFilter || undefined }
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/reviews/company/${company._id}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined
       });
       if (res.data?.success) {
-        const data = res.data.data;
-        setAllReviews(prev => page === 1 ? data.reviews : [...prev, ...data.reviews]);
-        setReviewsTotal(data.pagination.total);
+        const list: Review[] = res.data.data;
+        setAllReviews(list); // guardamos lista completa, filtramos después
+        setReviewsTotal(list.length);
       } else {
         setReviewsError('No se pudieron cargar las reseñas');
       }
@@ -155,7 +163,7 @@ const CompanyDetail: React.FC = () => {
     } finally {
       setReviewsLoading(false);
     }
-  }, [slug, API_URL, ratingFilter]);
+  }, [company?._id, API_URL]);
 
   useEffect(() => {
     // Reinicia la paginación cuando cambia el slug o el filtro de rating
@@ -171,7 +179,17 @@ const CompanyDetail: React.FC = () => {
   };
 
   // Combined reviews for distribution (prefer allReviews, fallback to recent)
-  const reviewsForStats = allReviews.length ? allReviews : recentReviews;
+  const reviewsForStats = allReviews.length ? allReviews : recentReviews; // siempre sin filtrar
+
+  // Reviews filtradas por estrellas (solo para visualización)
+  const filteredByRating = useMemo(() => {
+    if (ratingFilter == null) return allReviews;
+    return allReviews.filter(r => r.overallRating === ratingFilter);
+  }, [allReviews, ratingFilter]);
+
+  const displayedReviews = ratingFilter != null
+    ? filteredByRating
+    : (allReviews.length ? allReviews : recentReviews);
 
   const ratingDistribution: RatingBucket[] = useMemo(() => {
     const buckets: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
@@ -478,13 +496,20 @@ const CompanyDetail: React.FC = () => {
           <div className="flex flex-col gap-6 overflow-x-hidden bg-slate-50 p-4">
             {recentReviews.length === 0 && reviewsLoading && <p className="text-[#49739c]">Cargando reseñas...</p>}
             {reviewsError && <p className="text-red-600">{reviewsError}</p>}
-            {(allReviews.length ? allReviews : recentReviews).map(r => (
-              <ReviewCard key={r._id} review={r} />
+            {displayedReviews.map(r => (
+              <ReviewCard
+                key={r._id}
+                review={r}
+                onVoted={updated => {
+                  setAllReviews(prev => prev.map(item => item._id === updated._id ? updated : item));
+                }}
+                user={user}
+              />
             ))}
-            { (allReviews.length < reviewsTotal) && !reviewsLoading && (
-              <button onClick={handleLoadMoreReviews} className="self-center px-4 py-2 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline">Cargar más reseñas</button>
+            {ratingFilter != null && !reviewsLoading && displayedReviews.length === 0 && (
+              <p className="text-sm text-slate-500">No hay reseñas con {ratingFilter} estrellas.</p>
             )}
-            {reviewsLoading && allReviews.length > 0 && <p className="text-[#49739c] text-center text-sm">Cargando más...</p>}
+            {reviewsLoading && <p className="text-[#49739c] text-center text-sm">Cargando...</p>}
           </div>
         </div>
       </div>
@@ -510,44 +535,204 @@ const CompanyDetail: React.FC = () => {
 export default CompanyDetail;
 
 // Componente de tarjeta de reseña con truncado de contenido
-const ReviewCard: React.FC<{ review: Review }> = ({ review }) => {
+const ReviewCard: React.FC<{ review: Review; onVoted: (r: Review)=>void; user: User | null }> = ({ review, onVoted, user }) => {
   const [expanded, setExpanded] = useState(false);
+  const [localReview, setLocalReview] = useState(review);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState<string>('');
+  const [reportDetails, setReportDetails] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reported, setReported] = useState(false);
+  useEffect(()=>{ setLocalReview(review); }, [review]);
   const MAX = 260;
-  const body = review.content || '';
+  const body = localReview.content || '';
   const isLong = body.length > MAX;
   const display = expanded || !isLong ? body : body.slice(0, MAX) + '…';
+
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  const voting = useRef(false);
+
+  const handleVote = async (value: 'helpful' | 'unhelpful') => {
+    if (!user) return; // Podrías abrir modal de login aquí
+    if (voting.current) return;
+    if (localReview.userVote === value) return; // idempotente en UI
+    voting.current = true;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/reviews/${localReview._id}/vote`, { value }, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined
+      });
+      if (res.data?.success) {
+        const { helpfulVotes, unhelpfulVotes, totalVotes, userVote } = res.data.data;
+        const updated: Review = { ...localReview, helpfulVotes, unhelpfulVotes, totalVotes, userVote };
+        setLocalReview(updated);
+        onVoted(updated);
+      }
+    } catch (err) {
+      // Manejo simple de error
+    } finally {
+      voting.current = false;
+    }
+  };
+
+  const resetReportForm = () => {
+    setReportReason('');
+    setReportDetails('');
+  };
+
+  const handleOpenReport = () => {
+    if (!user) return; // Podrías abrir modal login
+    resetReportForm();
+    setShowReportModal(true);
+  };
+
+  const handleSubmitReport = async () => {
+    if (!reportReason) return;
+    setReportSubmitting(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/reviews/${localReview._id}/report`, { reason: reportReason, details: reportDetails || undefined }, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined
+      });
+      setReported(true);
+      setShowReportModal(false);
+    } catch (err) {
+      // Podrías mostrar toast
+    } finally {
+      setReportSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-3 rounded-lg bg-white border border-slate-200 p-4">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xs font-semibold">
-          {(review.author?.firstName?.[0] || '') + (review.author?.lastName?.[0] || '') || 'U'}
+          {(localReview.author?.firstName?.[0] || '') + (localReview.author?.lastName?.[0] || '') || 'U'}
         </div>
         <div className="flex-1">
-          <p className="text-[#0d141c] text-sm font-semibold leading-normal">{review.author?.firstName || ''} {review.author?.lastName || ''}</p>
-          <p className="text-[#49739c] text-[11px] leading-normal">{review.jobTitle || 'Empleado'} · {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : ''}</p>
+          <p className="text-[#0d141c] text-sm font-semibold leading-normal">{localReview.author?.firstName || ''} {localReview.author?.lastName || ''}</p>
+          <p className="text-[#49739c] text-[11px] leading-normal">{localReview.jobTitle || 'Empleado'} · {localReview.createdAt ? new Date(localReview.createdAt).toLocaleDateString() : ''}</p>
         </div>
         <div className="flex items-center gap-1">
-          <span className="text-[#0d80f2] text-sm font-semibold">{review.overallRating?.toFixed(1) || '—'}</span>
+          <span className="text-[#0d80f2] text-sm font-semibold">{localReview.overallRating?.toFixed(1) || '—'}</span>
           <div className="flex gap-0.5">
             {[...Array(5)].map((_, i) => (
-              <svg key={i} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256" className={i < (review.overallRating || 0) ? 'text-[#0d80f2]' : 'text-[#cedbe8]'} fill="currentColor"><path d="M234.5,114.38l-45.1,39.36,13.51,58.6a16,16,0,0,1-23.84,17.34l-51.11-31-51,31a16,16,0,0,1-23.84-17.34L66.61,153.8,21.5,114.38a16,16,0,0,1,9.11-28.06l59.46-5.15,23.21-55.36a15.95,15.95,0,0,1,29.44,0h0L166,81.17l59.44,5.15a16,16,0,0,1,9.11,28.06Z"/></svg>
+              <svg key={i} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 256 256" className={i < (localReview.overallRating || 0) ? 'text-[#0d80f2]' : 'text-[#cedbe8]'} fill="currentColor"><path d="M234.5,114.38l-45.1,39.36,13.51,58.6a16,16,0,0,1-23.84,17.34l-51.11-31-51,31a16,16,0,0,1-23.84-17.34L66.61,153.8,21.5,114.38a16,16,0,0,1,9.11-28.06l59.46-5.15,23.21-55.36a15.95,15.95,0,0,1,29.44,0h0L166,81.17l59.44,5.15a16,16,0,0,1,9.11,28.06Z"/></svg>
             ))}
           </div>
         </div>
       </div>
-      {review.title && <h3 className="text-sm font-semibold text-slate-800">{review.title}</h3>}
-      {body && (
-        <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-          {display}
-          {isLong && (
-            <button onClick={() => setExpanded(e => !e)} className="ml-1 text-blue-600 hover:underline text-xs font-medium">{expanded ? 'Ver menos' : 'Ver más'}</button>
+      {reported ? (
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-xs font-medium">
+          Has reportado esta reseña. Quedará oculta hasta revisión del equipo de moderación.
+        </div>
+      ) : (
+        <>
+          {localReview.title && <h3 className="text-sm font-semibold text-slate-800">{localReview.title}</h3>}
+          {body && (
+            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+              {display}
+              {isLong && (
+                <button onClick={() => setExpanded(e => !e)} className="ml-1 text-blue-600 hover:underline text-xs font-medium">{expanded ? 'Ver menos' : 'Ver más'}</button>
+              )}
+            </p>
           )}
-        </p>
+        </>
       )}
       <div className="flex gap-2 text-xs text-[#49739c]">
-        {review.recommendation?.wouldRecommend && <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-medium">Recomienda</span>}
+        {localReview.recommendation?.wouldRecommend && <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-medium">Recomienda</span>}
       </div>
+      {/* Voting controls */}
+      <div className="flex items-center gap-4 pt-1">
+        <button
+          disabled={!user || localReview.userVote === 'helpful'}
+          onClick={() => handleVote('helpful')}
+          className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border transition-colors ${localReview.userVote === 'helpful' ? 'bg-blue-600 border-blue-600 text-white cursor-default' : 'border-slate-300 text-slate-600 hover:border-blue-500 hover:text-blue-600'}`}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-6 0v4"/><path d="M5 9h14l-1 9a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4L5 9Z"/></svg>
+          Útil {typeof localReview.helpfulVotes === 'number' && <span className="font-semibold">{localReview.helpfulVotes}</span>}
+        </button>
+        <button
+          disabled={!user || localReview.userVote === 'unhelpful'}
+          onClick={() => handleVote('unhelpful')}
+          className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border transition-colors ${localReview.userVote === 'unhelpful' ? 'bg-red-600 border-red-600 text-white cursor-default' : 'border-slate-300 text-slate-600 hover:border-red-500 hover:text-red-600'}`}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 0 0 6 0v-4"/><path d="M19 15H5l1-9a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4l1 9Z"/></svg>
+          No útil {typeof localReview.unhelpfulVotes === 'number' && <span className="font-semibold">{localReview.unhelpfulVotes}</span>}
+        </button>
+        <span className="text-[11px] text-slate-500">{(localReview.helpfulVotes || 0)} de {( (localReview.helpfulVotes || 0) + (localReview.unhelpfulVotes || 0) )} lo consideraron útil</span>
+        <div className="ml-auto">
+          <button
+            disabled={!user || reported}
+            onClick={handleOpenReport}
+            className={`text-xs font-medium px-2 py-1 rounded border transition-colors flex items-center gap-1 ${reported ? 'border-amber-300 bg-amber-100 text-amber-600 cursor-default' : 'border-slate-300 text-slate-600 hover:border-amber-500 hover:text-amber-600'}`}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M7 14l5-5 5 5"/></svg>
+            {reported ? 'Reportado' : 'Reportar'}
+          </button>
+        </div>
+      </div>
+
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => !reportSubmitting && setShowReportModal(false)} />
+          <div className="relative z-10 w-full max-w-md rounded-lg bg-white shadow-lg border border-slate-200 p-5 flex flex-col gap-4 animate-fade-in">
+            <div className="flex items-start justify-between">
+              <h4 className="text-sm font-semibold text-slate-800">Reportar reseña</h4>
+              <button onClick={() => !reportSubmitting && setShowReportModal(false)} className="text-slate-400 hover:text-slate-600" aria-label="Cerrar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">Selecciona el motivo que mejor describa por qué consideras que este contenido es inapropiado.</p>
+            <div className="flex flex-col gap-2 max-h-44 overflow-y-auto pr-1">
+              {[
+                { value: 'spam', label: 'Spam o publicidad' },
+                { value: 'ofensivo', label: 'Lenguaje ofensivo' },
+                { value: 'discriminacion', label: 'Contenido discriminatorio' },
+                { value: 'informacion_privada', label: 'Divulgación de información privada' },
+                { value: 'engano', label: 'Información engañosa' },
+                { value: 'otro', label: 'Otro' }
+              ].map(opt => (
+                <label key={opt.value} className={`flex items-center gap-2 rounded border px-3 py-2 cursor-pointer text-xs ${reportReason === opt.value ? 'border-blue-600 bg-blue-50 text-slate-800' : 'border-slate-300 hover:border-blue-400 text-slate-600'}`}> 
+                  <input
+                    type="radio"
+                    name="reportReason"
+                    value={opt.value}
+                    checked={reportReason === opt.value}
+                    onChange={() => setReportReason(opt.value)}
+                    className="accent-blue-600"
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+            {reportReason && (
+              <div className="flex flex-col gap-1">
+                <textarea
+                  value={reportDetails}
+                  onChange={e => setReportDetails(e.target.value)}
+                  maxLength={1000}
+                  placeholder="Detalles adicionales (opcional)"
+                  className="w-full h-24 text-xs rounded border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none resize-none p-2"
+                />
+                <p className="text-[10px] text-slate-400 ml-auto">{reportDetails.length}/1000</p>
+              </div>
+            )}
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                disabled={reportSubmitting}
+                onClick={() => setShowReportModal(false)}
+                className="text-xs font-medium px-3 py-2 rounded border border-slate-300 text-slate-600 hover:bg-slate-100 disabled:opacity-50"
+              >Cancelar</button>
+              <button
+                disabled={!reportReason || reportSubmitting}
+                onClick={handleSubmitReport}
+                className={`text-xs font-semibold px-4 py-2 rounded text-white transition-colors ${(!reportReason || reportSubmitting) ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+              >{reportSubmitting ? 'Enviando...' : 'Enviar reporte'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -49,6 +49,9 @@ export interface IReview extends Document {
 
   helpfulVotes?: number;
   totalVotes?: number;
+  unhelpfulVotes?: number;
+  helpfulVoters?: mongoose.Types.ObjectId[];
+  unhelpfulVoters?: mongoose.Types.ObjectId[];
 
   isVisible?: boolean;
   tags?: string[];
@@ -120,6 +123,9 @@ const ReviewSchema: Schema = new Schema(
 
     helpfulVotes: { type: Number, default: 0 },
     totalVotes: { type: Number, default: 0 },
+  unhelpfulVotes: { type: Number, default: 0 },
+  helpfulVoters: [{ type: Schema.Types.ObjectId, ref: 'User', index: true }],
+  unhelpfulVoters: [{ type: Schema.Types.ObjectId, ref: 'User', index: true }],
 
     isVisible: { type: Boolean, default: true },
     tags: [{ type: String, trim: true, maxlength: 30 }],

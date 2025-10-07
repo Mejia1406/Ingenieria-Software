@@ -73,9 +73,22 @@ export const moderateReview = async (req: AuthRequest, res: Response) => {
 
     if (status === 'rejected') {
       review.isVisible = false;
+    } else if (status === 'approved') {
+      // Al aprobar se restablece visibilidad
+      review.isVisible = true;
     }
 
     await review.save();
+
+    // Opcional: marcar reportes pendientes sobre esta review como "dismissed" si fue aprobada
+    if (status === 'approved') {
+      try {
+        const Report = (await import('../models/Report')).default;
+        await Report.updateMany({ targetType: 'review', targetId: review._id, status: 'pending' }, { $set: { status: 'dismissed' } });
+      } catch (innerErr) {
+        console.error('No se pudieron actualizar reportes al aprobar review', innerErr);
+      }
+    }
 
     res.json({ success:true, message:'Review moderated', data: { review } });
   } catch (error:any) {

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '../middleware/auth';
 import { listReviewsAdmin, moderateReview, adminStats } from '../controllers/adminReviewController';
+import { listReports, resolveReport } from '../controllers/reviewController';
 import { adminListCompanies, adminGetCompany, /* adminCreateCompany */ adminUpdateCompany, adminDeleteCompany } from '../controllers/adminCompanyController';
 import { body, param, query } from 'express-validator';
 import { validateRequest } from '../middleware/validation';
@@ -49,5 +50,15 @@ router.patch('/reviews/:id/moderate', [
   body('status').isIn(['approved','rejected']),
   body('reason').optional().isLength({ max:500 })
 ], validateRequest, moderateReview);
+
+// Reports management
+router.get('/reports', [
+  query('status').optional().isIn(['pending','dismissed','confirmed'])
+], validateRequest, listReports);
+router.patch('/reports/:id/resolve', [
+  param('id').isMongoId(),
+  body('action').isIn(['dismiss','confirm']),
+  body('note').optional().isLength({ max:500 })
+], validateRequest, resolveReport);
 
 export default router;
