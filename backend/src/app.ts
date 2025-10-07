@@ -5,12 +5,14 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import connectDB from './config/database';
+import { ensureAdmin } from './utils/ensureAdmin';
 
 // Import routes
 import authRoutes from './routes/auth';
 import companyRoutes from './routes/companies';
 import experienceRoutes from './routes/experiences';
 import reviewRoutes from './routes/reviews'
+import adminRoutes from './routes/admin'
 
 // Cargar variables de entorno
 dotenv.config();
@@ -19,6 +21,8 @@ const app = express();
 
 // Connect to database
 connectDB();
+// Ensure admin user exists (seed)
+ensureAdmin();
 
 // Rate limiting
 const limiter = rateLimit({
@@ -50,6 +54,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/experiences', experienceRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -71,6 +76,8 @@ app.get('/api', (req, res) => {
             auth: '/api/auth',
             companies: '/api/companies',
             experiences: '/api/experiences',
+            reviews: '/api/reviews',
+            admin: '/api/admin',
             health: '/api/health'
         },
         documentation: 'https://docs.talenttrace.com'

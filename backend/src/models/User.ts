@@ -45,7 +45,8 @@ const UserSchema: Schema = new Schema({
         unique: true,
         lowercase: true,
         trim: true,
-        match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
+    // Updated regex: permite TLD de longitud variable (>=2) y formato más amplio (RFC simplificado)
+    match: [/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/ , 'Please enter a valid email']
     },
     password: {
         type: String,

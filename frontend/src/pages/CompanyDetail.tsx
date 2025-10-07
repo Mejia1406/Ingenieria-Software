@@ -76,12 +76,22 @@ const CompanyDetail: React.FC = () => {
     navigate("/profile");
   };
 
+  const handleGoToAdmin = () => {
+    setIsDropdownOpen(false);
+    navigate('/admin');
+  };
+
   const handleWriteReview = () => {
     setIsDropdownOpen(false);
     setShowWriteReview(true);
   };
 
-  const handleLogout = () => setIsDropdownOpen(false);
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setIsDropdownOpen(false);
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -320,6 +330,17 @@ const CompanyDetail: React.FC = () => {
                         </svg>
                         Mi Perfil
                       </button>
+                      {user?.userType === 'admin' && (
+                        <button
+                          onClick={handleGoToAdmin}
+                          className="w-full text-left px-4 py-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 transition-colors flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 13h2l2 7h10l2-7h2M5 13l4-8h6l4 8M9 5V3h6v2" />
+                          </svg>
+                          Panel Admin
+                        </button>
+                      )}
                       <button
                         onClick={handleWriteReview}
                         className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors flex items-center gap-2"

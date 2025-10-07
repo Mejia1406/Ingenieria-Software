@@ -127,6 +127,11 @@ import React, { useState, useEffect, useRef } from 'react';
             setIsDropdownOpen(false);
         };
 
+        const handleGoToAdmin = () => {
+            navigate('/admin');
+            setIsDropdownOpen(false);
+        };
+
         const toggleDropdown = () => {
             setIsDropdownOpen(!isDropdownOpen);
         };
@@ -252,6 +257,17 @@ import React, { useState, useEffect, useRef } from 'react';
                                                         </svg>
                                                         Mi Perfil
                                                     </button>
+                                                    {user?.userType === 'admin' && (
+                                                        <button
+                                                            onClick={handleGoToAdmin}
+                                                            className="w-full text-left px-3 py-2 rounded-lg text-[13px] font-semibold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 active:bg-indigo-100 transition-colors flex items-center gap-2"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 13h2l2 7h10l2-7h2M5 13l4-8h6l4 8M9 5V3h6v2" />
+                                                            </svg>
+                                                            Panel Admin
+                                                        </button>
+                                                    )}
                                                 </div>
                                                 <div className="mt-1 pt-1 border-t border-slate-200/70">
                                                     <button

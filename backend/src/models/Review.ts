@@ -43,6 +43,9 @@ export interface IReview extends Document {
   isVerified?: boolean;
   isAnonymous?: boolean;
   moderationStatus?: "pending" | "approved" | "rejected";
+  moderatedAt?: Date;
+  moderatedBy?: mongoose.Types.ObjectId;
+  moderationReason?: string;
 
   helpfulVotes?: number;
   totalVotes?: number;
@@ -111,6 +114,9 @@ const ReviewSchema: Schema = new Schema(
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
+    moderatedAt: { type: Date },
+    moderatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    moderationReason: { type: String, maxlength: 500 },
 
     helpfulVotes: { type: Number, default: 0 },
     totalVotes: { type: Number, default: 0 },
