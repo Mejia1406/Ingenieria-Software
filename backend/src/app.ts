@@ -13,6 +13,7 @@ import companyRoutes from './routes/companies';
 import experienceRoutes from './routes/experiences';
 import reviewRoutes from './routes/reviews'
 import adminRoutes from './routes/admin'
+import recruiterRoutes from './routes/recruiters'
 
 // Cargar variables de entorno
 dotenv.config();
@@ -55,6 +56,7 @@ app.use('/api/companies', companyRoutes);
 app.use('/api/experiences', experienceRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/recruiters', recruiterRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

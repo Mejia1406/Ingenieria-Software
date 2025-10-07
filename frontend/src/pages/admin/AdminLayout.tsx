@@ -5,6 +5,7 @@ const navItems = [
   { to: '/admin', label: 'Dashboard', exact: true },
   { to: '/admin/reviews', label: 'Moderación' },
   { to: '/admin/companies', label: 'Compañías' },
+  { to: '/admin/recruiters', label: 'Reclutadores' },
   { to: '/admin/users', label: 'Usuarios' }
 ];
 

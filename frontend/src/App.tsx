@@ -1,4 +1,5 @@
 import React from 'react';
+import { Toaster } from 'react-hot-toast';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/Home';
 import Companies from "./pages/Companies";
@@ -11,6 +12,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminReviewsModeration from './pages/admin/AdminReviewsModeration';
 import AdminCompanies from './pages/admin/AdminCompanies';
 import AdminCompanyForm from './pages/admin/AdminCompanyForm';
+import AdminRecruiters from './pages/admin/AdminRecruiters';
 
 // Simple Protected Admin Route using localStorage (puede mejorarse con contexto global)
 const AdminRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
@@ -25,6 +27,7 @@ const AdminRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
 function App() {
   return (
     <Router>
+      <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<HomePage />} />
   <Route path="/companies" element={<Companies />} />
@@ -40,6 +43,7 @@ function App() {
           { /* Ruta deshabilitada para creación: redirige cualquier intento de /admin/companies/new al listado */ }
           <Route path="companies/new" element={<Navigate to="/admin/companies" replace />} />
           <Route path="companies/:id" element={<AdminCompanyForm />} />
+          <Route path="recruiters" element={<AdminRecruiters />} />
         </Route>
       </Routes>
     </Router>
