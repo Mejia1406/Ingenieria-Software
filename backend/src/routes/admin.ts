@@ -7,16 +7,14 @@ import { validateRequest } from '../middleware/validation';
 
 const router = Router();
 
-// All admin routes need auth + admin role
 router.use(authenticate, authorize('admin'));
 
-// KPIs
 router.get('/stats', adminStats);
 
-// Companies management
+
 router.get('/companies', adminListCompanies);
 router.get('/companies/:id', [param('id').isMongoId()], validateRequest, adminGetCompany);
-// Creación de compañías deshabilitada temporalmente
+
 router.post('/companies', (req, res) => {
   return res.status(410).json({ success: false, message: 'Company creation disabled temporarily' });
 });
@@ -35,7 +33,7 @@ router.put('/companies/:id', [
 ], validateRequest, adminUpdateCompany);
 router.delete('/companies/:id', [param('id').isMongoId()], validateRequest, adminDeleteCompany);
 
-// List reviews with filters
+
 router.get('/reviews', [
   query('status').optional().isIn(['pending','approved','rejected']),
   query('rating').optional().isInt({ min:1, max:5 }),
@@ -45,7 +43,7 @@ router.get('/reviews', [
   query('sortOrder').optional().isIn(['asc','desc'])
 ], validateRequest, listReviewsAdmin);
 
-// Moderate
+
 router.patch('/reviews/:id/moderate', [
   param('id').isMongoId(),
   body('status').isIn(['approved','rejected']),

@@ -4,7 +4,6 @@ import Review from '../models/Review';
 import { AuthRequest } from '../middleware/auth';
 import mongoose from 'mongoose';
 
-// List companies with basic filters for admin
 export const adminListCompanies = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
@@ -57,7 +56,6 @@ export const adminListCompanies = async (req: Request, res: Response) => {
   }
 };
 
-// Get single company by id
 export const adminGetCompany = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -78,7 +76,6 @@ export const adminGetCompany = async (req: Request, res: Response) => {
   }
 };
 
-// Create company (admin)
 export const adminCreateCompany = async (req: AuthRequest, res: Response) => {
   try {
     const data = req.body;
@@ -86,7 +83,6 @@ export const adminCreateCompany = async (req: AuthRequest, res: Response) => {
     if (existing) {
       return res.status(400).json({ success: false, message: 'Company name already exists' });
     }
-    // Pre-chequear slug derivado del nombre
     const generatedSlug = data.name?.toLowerCase()?.trim()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
@@ -116,7 +112,6 @@ export const adminCreateCompany = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Update company
 export const adminUpdateCompany = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -126,7 +121,6 @@ export const adminUpdateCompany = async (req: AuthRequest, res: Response) => {
       if (existing) {
         return res.status(400).json({ success: false, message: 'Another company already uses this name' });
       }
-      // Validar slug futuro
       const futureSlug = updates.name.toLowerCase().trim()
         .replace(/[^a-z0-9\s-]/g, '')
         .replace(/\s+/g, '-')
@@ -136,7 +130,6 @@ export const adminUpdateCompany = async (req: AuthRequest, res: Response) => {
         return res.status(400).json({ success: false, message: 'Another company already uses resulting slug (pick a different name)' });
       }
     }
-    // If name changes, slug will regenerate via pre-save if we use save(); using findById first
     const company = await Company.findById(id);
     if (!company) return res.status(404).json({ success: false, message: 'Company not found' });
     Object.assign(company, updates);
@@ -160,7 +153,6 @@ export const adminUpdateCompany = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Delete company
 export const adminDeleteCompany = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

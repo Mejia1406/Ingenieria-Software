@@ -62,12 +62,6 @@ export async function adminGetCompany(id: string) {
   return res.data.data.company as AdminCompany;
 }
 
-// Creación de compañías deshabilitada temporalmente
-// export async function adminCreateCompany(payload: Partial<AdminCompany> & { name:string; industry:string; size:string; headquarters:{ city:string; country:string } }) {
-//   const res = await axios.post(`${API_URL}/admin/companies`, payload, { headers: authHeaders() });
-//   return res.data.data.company as AdminCompany;
-// }
-
 export async function adminUpdateCompany(id:string, payload: Partial<AdminCompany>) {
   const res = await axios.put(`${API_URL}/admin/companies/${id}`, payload, { headers: authHeaders() });
   return res.data.data.company as AdminCompany;

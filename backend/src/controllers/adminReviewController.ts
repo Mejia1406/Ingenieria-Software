@@ -4,7 +4,6 @@ import Company from '../models/Company';
 import User from '../models/User';
 import { AuthRequest } from '../middleware/auth';
 
-// GET /api/admin/reviews?status=pending&rating=5&company=companyId&page=1&limit=20
 export const listReviewsAdmin = async (req: Request, res: Response) => {
   try {
     const status = (req.query.status as string) || 'pending';
@@ -49,7 +48,6 @@ export const listReviewsAdmin = async (req: Request, res: Response) => {
   }
 };
 
-// PATCH /api/admin/reviews/:id/moderate { status, reason }
 export const moderateReview = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -69,12 +67,10 @@ export const moderateReview = async (req: AuthRequest, res: Response) => {
     review.moderationStatus = status;
     review.moderatedAt = new Date();
     if (req.user?._id) {
-      // Cast seguro al tipo esperado
       review.moderatedBy = req.user._id as any;
     }
     if (reason) review.moderationReason = reason;
 
-    // If rejected we can hide it from public listing quickly
     if (status === 'rejected') {
       review.isVisible = false;
     }
@@ -88,7 +84,6 @@ export const moderateReview = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// GET /api/admin/stats (simple KPIs)
 export const adminStats = async (_req: Request, res: Response) => {
   try {
     const [pendingReviews, totalReviews, totalCompanies, totalUsers] = await Promise.all([
@@ -98,7 +93,6 @@ export const adminStats = async (_req: Request, res: Response) => {
       User.countDocuments({}),
     ]);
 
-    // New reviews last 7 days
     const sevenDaysAgo = new Date(Date.now() - 7*24*3600*1000);
     const newReviewsLast7d = await Review.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
 

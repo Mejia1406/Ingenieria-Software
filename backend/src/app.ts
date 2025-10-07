@@ -5,9 +5,9 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import connectDB from './config/database';
-import { ensureAdmin } from './utils/ensureAdmin';
+import { ensureAdmin } from './securityAdmin/ensureAdmin';
 
-// Import routes
+
 import authRoutes from './routes/auth';
 import companyRoutes from './routes/companies';
 import experienceRoutes from './routes/experiences';

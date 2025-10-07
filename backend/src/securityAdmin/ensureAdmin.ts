@@ -6,7 +6,7 @@ export async function ensureAdmin() {
     const email = process.env.ADMIN_EMAIL;
     const password = process.env.ADMIN_PASSWORD;
     if (!email || !password) {
-      return; // No seed if env vars not present
+      return; 
     }
     const existing = await User.findOne({ email });
     if (existing) {
