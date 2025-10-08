@@ -13,6 +13,7 @@ import AdminReviewsModeration from './pages/admin/AdminReviewsModeration';
 import AdminCompanies from './pages/admin/AdminCompanies';
 import AdminCompanyForm from './pages/admin/AdminCompanyForm';
 import AdminRecruiters from './pages/admin/AdminRecruiters';
+import RecruiterAnalytics from './pages/RecruiterAnalytics';
 
 // Simple Protected Admin Route using localStorage (puede mejorarse con contexto global)
 const AdminRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
@@ -45,6 +46,7 @@ function App() {
           <Route path="companies/:id" element={<AdminCompanyForm />} />
           <Route path="recruiters" element={<AdminRecruiters />} />
         </Route>
+        <Route path="/recruiter/analytics" element={<RecruiterAnalytics />} />
       </Routes>
     </Router>
   );

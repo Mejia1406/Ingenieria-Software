@@ -56,6 +56,14 @@ export interface IReview extends Document {
   isVisible?: boolean;
   tags?: string[];
 
+  // Recruiter / company official response
+  recruiterResponse?: {
+    responder: mongoose.Types.ObjectId; // user (recruiter/admin) who responded
+    content: string;
+    createdAt: Date;
+    updatedAt?: Date;
+  };
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -129,6 +137,12 @@ const ReviewSchema: Schema = new Schema(
 
     isVisible: { type: Boolean, default: true },
     tags: [{ type: String, trim: true, maxlength: 30 }],
+    recruiterResponse: {
+      responder: { type: Schema.Types.ObjectId, ref: 'User' },
+      content: { type: String, trim: true, maxlength: 2000 },
+      createdAt: { type: Date },
+      updatedAt: { type: Date }
+    }
   },
   { timestamps: true }
 );

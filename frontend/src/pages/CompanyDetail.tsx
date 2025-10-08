@@ -40,6 +40,16 @@ interface Review {
   userVote?: 'helpful' | 'unhelpful' | null;
   isVisible?: boolean;
   moderationStatus?: string;
+  recruiterResponse?: {
+    responder?: {
+      firstName?: string;
+      lastName?: string;
+      userType?: string;
+    };
+    content: string;
+    createdAt: string;
+    updatedAt?: string;
+  }
 }
 
 // Agrega la interfaz User si no la tienes ya
@@ -57,6 +67,7 @@ interface RatingBucket { star: number; count: number; percent: number; }
 const CompanyDetail: React.FC = () => {
   const { slug } = useParams();
   const [company, setCompany] = useState<Company | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [recentReviews, setRecentReviews] = useState<Review[]>([]);
   // Lista completa de reviews aprobadas (sin filtrar por estrellas)
   const [allReviews, setAllReviews] = useState<Review[]>([]);
@@ -71,6 +82,7 @@ const CompanyDetail: React.FC = () => {
   const [showWriteReview, setShowWriteReview] = useState(false);
   const [loadingCompany, setLoadingCompany] = useState(false);
   const [companyError, setCompanyError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'reviews' | 'about'>('reviews');
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
@@ -231,6 +243,11 @@ const CompanyDetail: React.FC = () => {
     }
   }, []);
 
+  const toggleFollow = () => {
+    // simple local toggle (reverted behavior)
+    setIsFollowing(prev => !prev);
+  };
+
   const handleAuthSuccess = (userData: User, token: string) => {
     setUser(userData);
     setShowAuth(false);
@@ -288,9 +305,9 @@ const CompanyDetail: React.FC = () => {
   if (!company) return null;
 
   return (
-    <div className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden" style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}>
+  <div className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden" style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}>
       {/* HEADER INTEGRADO */}
-       <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-slate-200 px-10 py-3">
+  <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-slate-200 px-10 py-3">
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-4 text-slate-900">
               <div className="size-4">
@@ -303,9 +320,7 @@ const CompanyDetail: React.FC = () => {
             </div>
             <div className="flex items-center gap-9">
               <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/">Inicio</Link>
-              <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Reseñas</a>
               <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/companies">Empresas</Link>
-              <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Experiencias</a>
             </div>
           </div>
           <div className="flex flex-1 justify-end gap-8">
@@ -413,30 +428,46 @@ const CompanyDetail: React.FC = () => {
                     {company.headquarters?.city}{company.headquarters?.city && company.headquarters?.country ? ', ' : ''}{company.headquarters?.country}
                   </p>
                 )}
+                {/* Botón Analytics para recruiter asociado a esta empresa */}
+                {user && user.userType === 'recruiter' && (user as any).recruiterInfo?.companyId === company._id && (
+                  <button
+                    onClick={() => navigate('/recruiter/analytics')}
+                    className="mt-2 inline-flex items-center gap-1 self-start rounded-md border border-blue-600 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M3.6 9h16.8"/><path d="M3.6 15h16.8"/><path d="M11.25 3a17 17 0 000 18"/><path d="M12.75 3a17 17 0 010 18"/></svg>
+                    Ver Analytics
+                  </button>
+                )}
               </div>
             </div>
-            <button
-              className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#e7edf4] text-[#0d141c] text-sm font-bold leading-normal tracking-[0.015em] w-full max-w-[120px] md:w-auto"
-            >
-              <span className="truncate">Follow</span>
-            </button>
-          </div>
-          <div className="pb-3">
-            <div className="flex border-b border-[#cedbe8] px-4 gap-8">
-              <a className="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#49739c] pb-[13px] pt-4" href="#">
-              </a>
-              <a className="flex flex-col items-center justify-center border-b-[3px] border-b-[#0d80f2] text-[#0d141c] pb-[13px] pt-4" href="#">
-                <p className="text-[#0d141c] text-sm font-bold leading-normal tracking-[0.015em]">Reviews</p>
-              </a>
-              <a className="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#49739c] pb-[13px] pt-4" href="#">
-                <p className="text-[#49739c] text-sm font-bold leading-normal tracking-[0.015em]">FAQs</p>
-              </a>
-              <a className="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#49739c] pb-[13px] pt-4" href="#">
-                <p className="text-[#49739c] text-sm font-bold leading-normal tracking-[0.015em]">About</p>
-              </a>
+            <div className="flex flex-col items-end gap-1">
+              <button
+                onClick={toggleFollow}
+                className={`flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 text-sm font-bold leading-normal tracking-[0.015em] w-full max-w-[140px] md:w-auto transition-colors ${isFollowing ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-[#e7edf4] text-[#0d141c] hover:bg-slate-200'}`}
+              >
+                <span className="truncate">{isFollowing ? 'Siguiendo' : 'Seguir'}</span>
+              </button>
             </div>
           </div>
-          {/* Aquí puedes agregar reviews, gráficos, etc. */}
+          <div className="pb-3">
+            <div className="flex border-b border-[#cedbe8] px-4 gap-6">
+              <button
+                onClick={() => setActiveTab('reviews')}
+                className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 transition-colors ${activeTab==='reviews' ? 'border-b-[#0d80f2] text-[#0d141c]' : 'border-b-transparent text-[#49739c] hover:text-[#0d141c]'}`}
+              >
+                <p className="text-sm font-bold leading-normal tracking-[0.015em]">Reviews</p>
+              </button>
+              <button
+                onClick={() => setActiveTab('about')}
+                className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 transition-colors ${activeTab==='about' ? 'border-b-[#0d80f2] text-[#0d141c]' : 'border-b-transparent text-[#49739c] hover:text-[#0d141c]'}`}
+              >
+                <p className="text-sm font-bold leading-normal tracking-[0.015em]">About</p>
+              </button>
+              
+            </div>
+          </div>
+          {activeTab === 'reviews' && (
+          <>
           <h2 className="text-[#0d141c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Reviews</h2>
           <div className="flex flex-wrap gap-x-8 gap-y-6 p-4">
             {/* Overrating y barras */}
@@ -511,6 +542,43 @@ const CompanyDetail: React.FC = () => {
             )}
             {reviewsLoading && <p className="text-[#49739c] text-center text-sm">Cargando...</p>}
           </div>
+          </>
+          )}
+          {activeTab === 'about' && (
+            <div className="p-6 flex flex-col gap-4">
+              <h2 className="text-[#0d141c] text-[22px] font-bold leading-tight tracking-[-0.015em]">Sobre la empresa</h2>
+              {company.description && (
+                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{company.description}</p>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                {company.industry && (
+                  <div>
+                    <p className="text-slate-500 text-xs uppercase font-semibold tracking-wide">Industria</p>
+                    <p className="text-slate-800 font-medium">{company.industry}</p>
+                  </div>
+                )}
+                {company.size && (
+                  <div>
+                    <p className="text-slate-500 text-xs uppercase font-semibold tracking-wide">Tamaño</p>
+                    <p className="text-slate-800 font-medium">{company.size} empleados</p>
+                  </div>
+                )}
+                {company.founded && (
+                  <div>
+                    <p className="text-slate-500 text-xs uppercase font-semibold tracking-wide">Fundada</p>
+                    <p className="text-slate-800 font-medium">{company.founded}</p>
+                  </div>
+                )}
+                {(company.headquarters?.city || company.headquarters?.country) && (
+                  <div>
+                    <p className="text-slate-500 text-xs uppercase font-semibold tracking-wide">Sede</p>
+                    <p className="text-slate-800 font-medium">{company.headquarters?.city}{company.headquarters?.city && company.headquarters?.country ? ', ' : ''}{company.headquarters?.country}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
         </div>
       </div>
 
@@ -543,6 +611,10 @@ const ReviewCard: React.FC<{ review: Review; onVoted: (r: Review)=>void; user: U
   const [reportDetails, setReportDetails] = useState('');
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const [reported, setReported] = useState(false);
+  const [editingReply, setEditingReply] = useState(false);
+  const [replyDraft, setReplyDraft] = useState('');
+  const [replyError, setReplyError] = useState<string | null>(null);
+  const [savingReply, setSavingReply] = useState(false);
   useEffect(()=>{ setLocalReview(review); }, [review]);
   const MAX = 260;
   const body = localReview.content || '';
@@ -600,6 +672,61 @@ const ReviewCard: React.FC<{ review: Review; onVoted: (r: Review)=>void; user: U
       // Podrías mostrar toast
     } finally {
       setReportSubmitting(false);
+    }
+  };
+
+  // Reply logic
+  const canReply = !!user && (user.userType === 'admin' || user.userType === 'recruiter');
+  const startReply = () => {
+    if (!canReply) return;
+    setReplyError(null);
+    setReplyDraft(localReview.recruiterResponse?.content || '');
+    setEditingReply(true);
+  };
+
+  const cancelReply = () => {
+    setEditingReply(false);
+    setReplyDraft('');
+    setReplyError(null);
+  };
+
+  const saveReply = async () => {
+    if (!replyDraft.trim()) {
+      setReplyError('El contenido es requerido');
+      return;
+    }
+    if (replyDraft.trim().length < 5) {
+      setReplyError('Debe tener al menos 5 caracteres');
+      return;
+    }
+    if (replyDraft.length > 2000) {
+      setReplyError('Máximo 2000 caracteres');
+      return;
+    }
+    try {
+      setSavingReply(true);
+      setReplyError(null);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setReplyError('No autenticado');
+        setSavingReply(false);
+        return;
+      }
+      const res = await axios.post(`${API_URL}/reviews/${localReview._id}/reply`, { content: replyDraft.trim() }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data?.success) {
+        const updated: Review = res.data.data.review;
+        setLocalReview(updated);
+        onVoted(updated); // reutilizamos callback para propagar cambios
+        setEditingReply(false);
+      } else {
+        setReplyError(res.data?.message || 'Error guardando respuesta');
+      }
+    } catch (err:any) {
+      setReplyError(err.response?.data?.message || 'Error de red');
+    } finally {
+      setSavingReply(false);
     }
   };
 
@@ -733,6 +860,49 @@ const ReviewCard: React.FC<{ review: Review; onVoted: (r: Review)=>void; user: U
           </div>
         </div>
       )}
+      {/* Recruiter Response Block */}
+      <div className="mt-2">
+        {localReview.recruiterResponse && !editingReply && (
+          <div className="mt-3 rounded border border-blue-200 bg-blue-50 p-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] font-semibold text-blue-700 uppercase tracking-wide">Respuesta de la empresa</span>
+              {canReply && (
+                <button onClick={startReply} className="text-[10px] text-blue-600 hover:underline font-medium">Editar</button>
+              )}
+            </div>
+            <p className="text-xs text-slate-700 whitespace-pre-line leading-relaxed">{localReview.recruiterResponse.content}</p>
+            <p className="text-[10px] text-slate-400 mt-1">
+              {localReview.recruiterResponse.updatedAt ? 'Actualizada ' + new Date(localReview.recruiterResponse.updatedAt).toLocaleString() : 'Publicada ' + new Date(localReview.recruiterResponse.createdAt).toLocaleString()}
+              {localReview.recruiterResponse.responder && ' · ' + (localReview.recruiterResponse.responder.firstName || '') + ' ' + (localReview.recruiterResponse.responder.lastName || '')}
+            </p>
+          </div>
+        )}
+
+        {canReply && !localReview.recruiterResponse && !editingReply && (
+          <button onClick={startReply} className="mt-2 text-[11px] text-blue-600 hover:underline font-medium">Responder como empresa</button>
+        )}
+
+        {editingReply && (
+          <div className="mt-3 rounded border border-blue-300 bg-white p-3 flex flex-col gap-2">
+            <textarea
+              value={replyDraft}
+              onChange={e => setReplyDraft(e.target.value)}
+              className="w-full h-28 text-xs rounded border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none resize-none p-2"
+              placeholder="Escribe la respuesta (5-2000 caracteres)"
+              maxLength={2000}
+              disabled={savingReply}
+            />
+            <div className="flex items-center justify-between text-[10px] text-slate-400">
+              <span>{replyDraft.length}/2000</span>
+              {replyError && <span className="text-red-500">{replyError}</span>}
+            </div>
+            <div className="flex items-center gap-2 justify-end">
+              <button onClick={cancelReply} disabled={savingReply} className="text-[11px] px-3 py-1 rounded border border-slate-300 text-slate-600 hover:bg-slate-100 disabled:opacity-50">Cancelar</button>
+              <button onClick={saveReply} disabled={savingReply} className={`text-[11px] px-4 py-1 rounded font-semibold text-white ${savingReply ? 'bg-blue-300' : 'bg-blue-600 hover:bg-blue-700'}`}>{savingReply ? 'Guardando...' : 'Guardar'}</button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

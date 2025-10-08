@@ -2,6 +2,10 @@ import { Request, Response } from 'express';
 import Review from '../models/Review';
 import { AuthRequest } from '../middleware/auth';
 import Report from '../models/Report';
+import User from '../models/User';
+import Company from '../models/Company';
+import mongoose from 'mongoose';
+import Notification from '../models/Notification';
 
 // Crear review
 export const createReview = async (req: Request, res: Response) => {
@@ -79,6 +83,7 @@ export const getCompanyReviews = async (req: Request, res: Response) => {
     const userId = (req as any).user?._id?.toString();
     const raw = await Review.find({ company: req.params.companyId, isVisible: true, moderationStatus: 'approved' })
       .populate('author', 'firstName lastName')
+      .populate('recruiterResponse.responder', 'firstName lastName userType')
       .sort({ createdAt: -1 });
 
     const reviews = raw.map(r => {
@@ -297,6 +302,136 @@ export const resolveReport = async (req: AuthRequest, res: Response) => {
     res.json({ success:true, message:'Report resolved', data:{ report } });
   } catch (err:any) {
     res.status(500).json({ success:false, message:'Error resolving report' });
+  }
+};
+
+// Responder a una review (reclutador/admin) - HU responder feedback
+export const respondToReview = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params; // review id
+    const { content } = req.body;
+    const user = req.user;
+    if (!user) return res.status(401).json({ success:false, message:'Auth required' });
+    if (!content || typeof content !== 'string' || !content.trim()) {
+      return res.status(400).json({ success:false, message:'Content is required' });
+    }
+
+    // Solo reclutadores aprobados o admin
+    if (!(user.userType === 'admin' || (user.userType === 'recruiter' && user.recruiterInfo?.status === 'approved'))) {
+      return res.status(403).json({ success:false, message:'No autorizado para responder reviews' });
+    }
+
+    const review = await Review.findById(id);
+    if (!review) return res.status(404).json({ success:false, message:'Review not found' });
+    if (!review.isVisible || review.moderationStatus !== 'approved') {
+      return res.status(409).json({ success:false, message:'Review no visible o sin aprobar' });
+    }
+
+    // Validar que el reclutador pertenezca a la compañía de la review (si no es admin)
+    if (user.userType !== 'admin') {
+      const dbUser = await User.findById(user._id, 'recruiterInfo userType');
+      if (!dbUser) return res.status(401).json({ success:false, message:'Usuario no encontrado' });
+
+  let recruiterCompanyId = dbUser.recruiterInfo?.companyId as mongoose.Types.ObjectId | undefined;
+
+      // Fallback: si no hay companyId, intentar asociar por nombre aproximado
+      if (!recruiterCompanyId && dbUser.recruiterInfo?.companyName) {
+        const nameRegex = new RegExp('^' + dbUser.recruiterInfo.companyName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
+        const matchedCompany = await Company.findOne({ name: nameRegex });
+        if (matchedCompany) {
+          recruiterCompanyId = matchedCompany._id as mongoose.Types.ObjectId;
+          // Guardar asociación para futuras validaciones (no bloquear si falla save)
+          try {
+            (dbUser.recruiterInfo as any).companyId = matchedCompany._id as mongoose.Types.ObjectId;
+            await dbUser.save();
+          } catch (e) {
+            console.warn('No se pudo persistir companyId en recruiterInfo', e);
+          }
+        }
+      }
+
+      // Segunda capa: normalización más flexible (sin acentos, minúsculas, sin signos)
+      const normalizeName = (str: string) => str
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+        .replace(/[^a-zA-Z0-9 ]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+
+      if (!recruiterCompanyId && dbUser.recruiterInfo?.companyName && review.company) {
+        try {
+          const companyDoc = await Company.findById(review.company).select('name');
+          if (companyDoc) {
+            const userNorm = normalizeName(dbUser.recruiterInfo.companyName);
+            const reviewNorm = normalizeName(companyDoc.name);
+            if (userNorm && reviewNorm && userNorm === reviewNorm) {
+              recruiterCompanyId = companyDoc._id as mongoose.Types.ObjectId;
+              try {
+                (dbUser.recruiterInfo as any).companyId = companyDoc._id;
+                await dbUser.save();
+              } catch (e) {
+                console.warn('Persistencia companyId (normalization) falló', e);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Error en normalización de nombre de empresa', e);
+        }
+      }
+
+      if (!recruiterCompanyId || !review.company || review.company.toString() !== recruiterCompanyId.toString()) {
+        let extra: any = undefined;
+        if (process.env.NODE_ENV === 'development') {
+          extra = {
+            recruiterCompanyName: dbUser.recruiterInfo?.companyName,
+            recruiterCompanyId: recruiterCompanyId?.toString(),
+            reviewCompanyId: review.company?.toString()
+          };
+        }
+        return res.status(403).json({ success:false, message:'Solo recruiters de la empresa pueden responder', ...(extra? { debug: extra }: {}) });
+      }
+    }
+
+    const now = new Date();
+    const responderId: any = (user as any)._id; // cast para evitar TS unknown
+    if (!review.recruiterResponse) {
+      (review as any).recruiterResponse = {
+        responder: responderId,
+        content: content.trim(),
+        createdAt: now
+      };
+    } else {
+      review.recruiterResponse.content = content.trim();
+      review.recruiterResponse.updatedAt = now;
+      // mantener responder original
+    }
+    await review.save();
+
+    // Crear notificación para el autor de la review (si existe y no es el mismo que responde)
+    const responderIdStr = responderId?.toString?.();
+    if (review.author && responderIdStr && review.author.toString() !== responderIdStr) {
+      try {
+        await Notification.create({
+          user: review.author,
+            type: 'review_reply',
+            review: review._id,
+            company: review.company,
+            message: 'Tu review recibió una respuesta del equipo de la empresa.'
+        });
+      } catch (notifyErr) {
+        console.error('Error creando notificación review_reply', notifyErr);
+      }
+    }
+
+    const populated = await Review.findById(review._id)
+      .populate('recruiterResponse.responder', 'firstName lastName userType')
+      .lean();
+
+    res.json({ success:true, message:'Respuesta registrada', data: { review: populated } });
+  } catch (err:any) {
+    console.error('respondToReview error', err);
+    res.status(500).json({ success:false, message:'Error respondiendo review', error: process.env.NODE_ENV==='development'? err.message: undefined });
   }
 };
 

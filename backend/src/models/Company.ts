@@ -44,6 +44,7 @@ export interface ICompany extends Document {
     // SEO fields
     metaDescription?: string;
     keywords: string[];
+
     
     createdAt: Date;
     updatedAt: Date;
@@ -193,7 +194,9 @@ const CompanySchema: Schema = new Schema({
     keywords: [{
         type: String,
         trim: true
-    }]
+    }],
+
+    // (followers/faqs removed by request revert)
 }, {
     timestamps: true
 });

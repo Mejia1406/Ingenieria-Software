@@ -8,6 +8,7 @@ import {
   voteReview,
   reportReview
 } from '../controllers/reviewController';
+import { respondToReview } from '../controllers/reviewController';
 import { authenticate } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 
@@ -70,6 +71,18 @@ router.post(
   ],
   validateRequest,
   reportReview
+);
+
+// Responder review (recruiter/admin)
+router.post(
+  '/:id/reply',
+  authenticate,
+  [
+    param('id').isMongoId().withMessage('Invalid review ID'),
+    body('content').isString().trim().isLength({ min:5, max:2000 }).withMessage('Content 5-2000 chars')
+  ],
+  validateRequest,
+  respondToReview
 );
 
 export default router;

@@ -14,6 +14,7 @@ import experienceRoutes from './routes/experiences';
 import reviewRoutes from './routes/reviews'
 import adminRoutes from './routes/admin'
 import recruiterRoutes from './routes/recruiters'
+import analyticsRoutes from './routes/analytics'
 
 // Cargar variables de entorno
 dotenv.config();
@@ -57,6 +58,7 @@ app.use('/api/experiences', experienceRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/recruiters', recruiterRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -80,6 +82,7 @@ app.get('/api', (req, res) => {
             experiences: '/api/experiences',
             reviews: '/api/reviews',
             admin: '/api/admin',
+            analytics: '/api/analytics',
             health: '/api/health'
         },
         documentation: 'https://docs.talenttrace.com'
