@@ -4,7 +4,6 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
-import connectDB from './config/database';
 import { ensureAdmin } from './securityAdmin/ensureAdmin';
 
 
@@ -21,10 +20,7 @@ dotenv.config();
 
 const app = express();
 
-// Connect to database
-connectDB();
-// Ensure admin user exists (seed)
-ensureAdmin();
+// Conexión a BD y ensureAdmin se manejan en server.ts para evitar dobles conexiones
 
 // Rate limiting
 const limiter = rateLimit({

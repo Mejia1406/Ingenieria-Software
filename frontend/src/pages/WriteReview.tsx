@@ -1,5 +1,6 @@
 // frontend/src/components/WriteReviewModal.tsx
 import React, { useState, useEffect } from 'react';
+import AnimatedContent from '../components/AnimatedContent';
 import axios from 'axios';
 
 interface User {
@@ -330,7 +331,20 @@ const WriteReviewModal: React.FC<WriteReviewModalProps> = ({ isOpen, onClose, us
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <AnimatedContent
+                distance={150}
+                direction="vertical"
+                reverse={true}
+                duration={0.9}
+                ease="power3.out"
+                initialOpacity={0}
+                animateOpacity
+                scale={1}
+                threshold={0.2}
+                delay={0}
+                triggerOnMount
+            >
+            <div className="bg-white rounded-lg w-[900px] max-w-[95vw] max-h-[90vh] overflow-y-scroll shadow-xl" style={{ scrollbarGutter: 'stable' }}>
                 <div className="p-6">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-6">
@@ -607,6 +621,7 @@ const WriteReviewModal: React.FC<WriteReviewModalProps> = ({ isOpen, onClose, us
                     </div>
                 </div>
             </div>
+            </AnimatedContent>
         </div>
     );
 };

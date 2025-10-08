@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation as useRouterLocation } from "react-route
 import axios from "axios";
 import WriteReviewModal from "../pages/WriteReview";
 import AuthPage from './Auth';
+import AnimatedList from '../components/AnimatedList';
 
 interface User {
     id: string;
@@ -169,12 +170,26 @@ const Companies: React.FC = () => {
               <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/">Inicio</Link>
               <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Reseñas</a>
               <Link className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" to="/companies">Empresas</Link>
-              <a className="text-slate-900 text-sm font-medium leading-normal hover:text-blue-600 transition-colors cursor-pointer" href="#">Experiencias</a>
             </div>
           </div>
-          <div className="flex flex-1 justify-end gap-8">
+          <div className="flex flex-1 justify-end gap-6">
             {user ? (
               <div className="flex items-center gap-3">
+                {/* Botón escribir experiencia primero */}
+                <button
+                  onClick={handleWriteReview}
+                  className="hidden md:inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 h-10 text-sm font-semibold text-slate-700 shadow-sm hover:border-blue-400/70 hover:text-blue-700 hover:shadow-md active:shadow-sm transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  Escribir Experiencia
+                </button>
+                <button
+                  onClick={handleWriteReview}
+                  className="md:hidden w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md active:scale-[0.97] transition-transform"
+                  aria-label="Escribir experiencia"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                </button>
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={toggleDropdown}
@@ -223,15 +238,6 @@ const Companies: React.FC = () => {
                           Panel Admin
                         </button>
                       )}
-                      <button
-                        onClick={handleWriteReview}
-                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors flex items-center gap-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Escribir Experiencia
-                      </button>
                       <div className="border-t border-slate-200 mt-2 pt-2">
                         <button
                           onClick={handleLogout}
@@ -324,30 +330,39 @@ const Companies: React.FC = () => {
               <div className="p-4 text-center text-[#49739c]">No se encontraron compañías.</div>
             )}
             
-            {!loading && filteredCompanies.map(company => (
-              <Link to={`/companies/${company.slug}`} key={company._id} className="block p-4 hover:bg-slate-100 rounded-lg transition-colors">
-                <div className="flex items-stretch justify-between gap-4">
-                  <div className="flex flex-col gap-1 flex-[2_2_0px]">
-                    <p className="text-[#49739c] text-sm font-normal leading-normal">{company.industry}</p>
-                    <p className="text-[#0d141c] text-base font-bold leading-tight">{company.name}</p>
-                    <p className="text-[#49739c] text-sm font-normal leading-normal">
-                      Puntuación promedio: {company.overallRating || 0} · {company.totalReviews || 0} reseñas
-                    </p>
-                    {company.headquarters && (
-                      <p className="text-[#49739c] text-xs font-normal leading-normal">
-                        📍 {company.headquarters.city}, {company.headquarters.country}
+            {!loading && filteredCompanies.length > 0 && (
+              <AnimatedList
+                items={filteredCompanies}
+                onItemSelect={(company) => navigate(`/companies/${company.slug}`)}
+                renderItem={(company: Company) => (
+                  <div className="flex items-stretch justify-between gap-4">
+                    <div className="flex flex-col gap-1 flex-[2_2_0px]">
+                      <p className="text-[#49739c] text-sm font-normal leading-normal">{company.industry}</p>
+                      <p className="text-[#0d141c] text-base font-bold leading-tight">{company.name}</p>
+                      <p className="text-[#49739c] text-sm font-normal leading-normal">
+                        Puntuación promedio: {company.overallRating || 0} · {company.totalReviews || 0} reseñas
                       </p>
+                      {company.headquarters && (
+                        <p className="text-[#49739c] text-xs font-normal leading-normal">
+                          📍 {company.headquarters.city}, {company.headquarters.country}
+                        </p>
+                      )}
+                    </div>
+                    {company.logo && (
+                      <div
+                        className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg flex-1"
+                        style={{ backgroundImage: `url('${company.logo}')` }}
+                      />
                     )}
                   </div>
-                  {company.logo && (
-                    <div
-                      className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg flex-1"
-                      style={{ backgroundImage: `url("${company.logo}")` }}
-                    ></div>
-                  )}
-                </div>
-              </Link>
-            ))}
+                )}
+                className="mt-2"
+                itemClassName=""
+                showGradients={false}
+                enableArrowNavigation
+                noInternalScroll
+              />
+            )}
           </div>
         </div>
       </div>
