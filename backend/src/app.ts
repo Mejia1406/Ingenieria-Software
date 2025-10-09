@@ -14,6 +14,7 @@ import reviewRoutes from './routes/reviews'
 import adminRoutes from './routes/admin'
 import recruiterRoutes from './routes/recruiters'
 import analyticsRoutes from './routes/analytics'
+import notificationRoutes from './routes/notifications'
 
 // Cargar variables de entorno
 dotenv.config();
@@ -55,6 +56,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/recruiters', recruiterRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

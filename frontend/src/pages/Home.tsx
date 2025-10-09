@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-    import { Link, useNavigate } from "react-router-dom";
-    import WriteReviewModal from "./WriteReview";
-    import AuthPage from './Auth';
-    import axios from 'axios';
+import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace es importar React y algunos hooks necesarios (los hooks son funciones)
+    import { Link, useNavigate } from "react-router-dom"; // Esto importa componentes y hooks de react-router-dom para manejar la navegación
+    import WriteReviewModal from "./WriteReview"; // Esto importa el componente WriteReviewModal desde otro archivo
+    import AuthPage from './Auth'; // Esto importa el componente AuthPage
+    import axios from 'axios'; // el axios es una librería para hacer solicitudes HTTP desde el navegador
 
-    interface User {
+    interface User { // esta es lainterfaz que define la forma de un objeto de usuario
         id: string;
         email: string;
         firstName: string;
@@ -13,7 +13,7 @@ import React, { useState, useEffect, useRef } from 'react';
         isVerified: boolean;
     }
 
-    interface ReviewFormData {
+    interface ReviewFormData { // la interfaz que define la forma de los datos del formulario de reseña
     companyName: string;
     jobTitle: string;
     outcome: string;
@@ -31,7 +31,7 @@ import React, { useState, useEffect, useRef } from 'react';
     salary: string;
     }
 
-    interface Company {
+    interface Company { // la interfaz que define la forma de un objeto de empresa
   _id: string;
   name: string;
   slug: string;
@@ -48,35 +48,92 @@ import React, { useState, useEffect, useRef } from 'react';
 
     
 
-    const HomePage: React.FC = () => {
-        const [showAuth, setShowAuth] = useState(false);
-        const [showWriteReview, setShowWriteReview] = useState(false);
-        const [user, setUser] = useState<User | null>(null);
-        const [searchQuery, setSearchQuery] = useState('');
-        const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-        const [companies, setCompanies] = useState<Company[]>([]);
-        const [loading, setLoading] = useState(true);
-        const dropdownRef = useRef<HTMLDivElement>(null);
-        const navigate = useNavigate();
-        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+    const HomePage: React.FC = () => { 
+        const [showAuth, setShowAuth] = useState(false); // esto muestra o no la interfaz de inicio de sesión
+        const [showWriteReview, setShowWriteReview] = useState(false); // esto controla si se muestra o no la interfaz de escribir reseña
+        const [user, setUser] = useState<User | null>(null); // aquí se guarda la información del usuario que ha iniciado sesión
+        const [searchQuery, setSearchQuery] = useState(''); // texto de búsqueda en el campo de búsqueda
+        const [isDropdownOpen, setIsDropdownOpen] = useState(false); // estado del menú desplegable del usuario(o sea ese avatar que esta arriba a la derecha)
+        // Notificaciones
+        type NotificationItem = {
+            _id: string;
+            type: 'review_reply';
+            message: string;
+            createdAt: string;
+            readAt?: string;
+            review?: {_id: string};
+            company?: { name?: string; slug?: string } | string;
+        };
+        const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+        const [notifOpen, setNotifOpen] = useState(false);
+    const [companies, setCompanies] = useState<Company[]>([]); // aquí se guarda la lista de empresas obtenidas de la base de datos
+    const [loading, setLoading] = useState(true); // ps esto es un estado de carga mientras se obtienen las empresas
+    const [companiesError, setCompaniesError] = useState<string | null>(null); // para mostrar error si no cargan
+        const dropdownRef = useRef<HTMLDivElement>(null); // esto detecta si se hace clic fuera del menú desplegable para cerrarlo
+        const navigate = useNavigate(); // esto hace que se pueda navegar entre las páginas
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api'; // esta es la URL de la API del backend para hacer solicitudes 
 
-        useEffect(() => {
-            const token = localStorage.getItem('token');
-            const userData = localStorage.getItem('user');
-            
-            if (token && userData) {
+        useEffect(() => { 
+            const token = localStorage.getItem('token'); // aquí se obtiene el token del usuario(el token es como una llave secreta que confirma que el usuario ha iniciado sesión que se crea al iniciar sesión)
+            const userData = localStorage.getItem('user'); // aquí se obtiene la información del usuario
+
+            if (token && userData) { // si hay token e información del usuario, se establece el estado del usuario
                 try {
-                    setUser(JSON.parse(userData));
-                } catch (error) {
+                    setUser(JSON.parse(userData)); // se analiza la información del usuario que está en formato JSON y se guarda en el estado(el estado se refiere a los datos que cambian y afectan lo que se muestra en la interfaz)
+                } catch (error) { // si hay un error al analizar la información del usuario, se elimina el token y la información del usuario
                     console.error('Error parsing user data:', error);
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
                 }
             }
-        }, []);
+        }, []); // esos dos corchetes hacen que ese useEffect solo se ejecute una vez, si eso no estuviera ahi se ejecutaría cada vez que el estado cambia y eso no es lo que queremos ya que solo necesitamos verificar si el usuario ha iniciado sesión una vez cuando se carga la página
 
+        // Cargar notificaciones cuando hay usuario
         useEffect(() => {
-            const handleClickOutside = (event: MouseEvent) => {
+            const fetchNotifications = async () => {
+                if (!user) { setNotifications([]); return; }
+                try {
+                    const token = localStorage.getItem('token');
+                    const res = await axios.get(`${API_URL}/notifications?unread=false&limit=10`, {
+                        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                        timeout: 6000
+                    });
+                    const list = res.data?.data?.notifications ?? [];
+                    if (Array.isArray(list)) setNotifications(list);
+                } catch (e) {
+                    // silencioso
+                }
+            };
+            fetchNotifications();
+            // refresco ligero cada 60s cuando el dropdown está abierto
+            const id = window.setInterval(() => { if (notifOpen) fetchNotifications(); }, 60000);
+            return () => window.clearInterval(id);
+        }, [user, API_URL, notifOpen]);
+
+        const unreadCount = notifications.filter(n=>!n.readAt).length;
+        const markRead = async (id: string) => {
+            try {
+                const token = localStorage.getItem('token');
+                await axios.post(`${API_URL}/notifications/${id}/read`, {}, { headers: token ? { Authorization: `Bearer ${token}` } : undefined });
+                setNotifications(prev => prev.map(n=> n._id===id ? { ...n, readAt: new Date().toISOString() } : n));
+            } catch {}
+        };
+        const markAllRead = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                await axios.post(`${API_URL}/notifications/mark-all-read`, {}, { headers: token ? { Authorization: `Bearer ${token}` } : undefined });
+                setNotifications(prev => prev.map(n=> ({ ...n, readAt: new Date().toISOString() })));
+            } catch {}
+        };
+
+        /* Todo este useEffect funciona asi: primero se detecta que es un click fuera del menu desplegable gracias a el dropdownRef 
+        ya que ese dropdownRef esta colocado en el div que tiene ese menu.
+        Despues ese event: MouseEvent se encarga de detectar el evento de click en cualquier parte de la pantalla
+        y el dropwdownref.current && !dropdownRef.current.contains(event.target as Node) verifica que el click no haya sido dentro del menu desplegable
+        y el setIsDropdownOpen(false) cierra el menu desplegable si se cumple esa condicion
+        */
+        useEffect(() => {
+            const handleClickOutside = (event: MouseEvent) => { 
                 if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                     setIsDropdownOpen(false);
                 }
@@ -88,26 +145,84 @@ import React, { useState, useEffect, useRef } from 'react';
             };
         }, []);
 
-        // Load companies from database
+        // Silent refresh on tab focus/visibility: intenta actualizar datos sin limpiar la UI
         useEffect(() => {
-            const fetchCompanies = async () => {
-            setLoading(true);
-            try {
-                const response = await axios.get(`${API_URL}/companies`);
-                if (response.data.success && response.data.data.companies) {
-                setCompanies(response.data.data.companies);
-                }
-            } catch (error) {
-                console.error('Error fetching companies:', error);
-                // Use fallback data if API fails
-                
-            } finally {
-
-                setLoading(false);
-            }
+            const silentRefresh = async () => {
+                try {
+                    const res = await axios.get(`${API_URL}/companies`, { timeout: 6000 });
+                    const list = res.data?.data?.companies ?? res.data?.companies ?? [];
+                    if (Array.isArray(list) && list.length > 0) {
+                        setCompanies(list);
+                        try { sessionStorage.setItem('tt_companies_cache', JSON.stringify({ ts: Date.now(), companies: list })); } catch {}
+                    }
+                } catch {}
             };
+            const onFocus = () => { if (document.visibilityState === 'visible') silentRefresh(); };
+            window.addEventListener('focus', onFocus);
+            document.addEventListener('visibilitychange', onFocus);
+            return () => {
+                window.removeEventListener('focus', onFocus);
+                document.removeEventListener('visibilitychange', onFocus);
+            };
+        }, [API_URL]);
+
         
-            fetchCompanies();
+        useEffect(() => {
+            const loadFromCache = () => {
+                try {
+                    const cached = sessionStorage.getItem('tt_companies_cache');
+                    if (cached) {
+                        const parsed = JSON.parse(cached) as { ts: number; companies: Company[] };
+                        // considera válido 10 minutos
+                        if (Date.now() - parsed.ts < 10 * 60 * 1000 && Array.isArray(parsed.companies)) {
+                            setCompanies(parsed.companies);
+                            setLoading(false);
+                            return true;
+                        }
+                    }
+                } catch {}
+                return false;
+            };
+
+            const saveToCache = (companies: Company[]) => {
+                try {
+                    sessionStorage.setItem('tt_companies_cache', JSON.stringify({ ts: Date.now(), companies }));
+                } catch {}
+            };
+
+            const fetchWithRetry = async (retries = 2, delayMs = 800) => {
+                setLoading(true);
+                setCompaniesError(null);
+                for (let attempt = 0; attempt <= retries; attempt++) {
+                    try {
+                        const url = `${API_URL}/companies`;
+                        console.log('[Home] Fetch companies attempt', attempt + 1, url);
+                        const response = await axios.get(url, { timeout: 8000 });
+                        const list = response.data?.data?.companies ?? response.data?.companies ?? [];
+                        if (Array.isArray(list)) {
+                            setCompanies(list);
+                            saveToCache(list);
+                            return;
+                        }
+                        throw new Error('Formato inesperado de /companies');
+                    } catch (err: any) {
+                        console.warn('[Home] Error fetching companies (attempt', attempt + 1, '):', err?.message || err);
+                        if (attempt < retries) {
+                            await new Promise(r => setTimeout(r, delayMs * (attempt + 1)));
+                            continue;
+                        }
+                        setCompaniesError('No se pudieron cargar las empresas. Intentaremos de nuevo más tarde.');
+                        // mantener últimos datos buenos; no limpiar UI si falla
+                        loadFromCache();
+                    } finally {
+                        setLoading(false);
+                    }
+                }
+            };
+
+            // intentar cargar desde cache primero para que la UI no “desaparezca”
+            const hadCache = loadFromCache();
+            fetchWithRetry(hadCache ? 1 : 2);
         }, [API_URL]);
 
         const handleAuthSuccess = (userData: User, token: string) => {
@@ -326,25 +441,91 @@ import React, { useState, useEffect, useRef } from 'react';
                         </nav>
                     </div>
                     <div className="flex flex-1 justify-end gap-8">
-                        <form onSubmit={handleSearch} className="flex">
-                            <label className="flex flex-col min-w-40 !h-10 max-w-64">
-                                <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
-                                    <div className="text-slate-500 flex border-none bg-slate-100 items-center justify-center pl-4 rounded-l-lg border-r-0">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                                            <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z" />
-                                        </svg>
-                                    </div>
-                                    <input
-                                        placeholder="Buscar empresas..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 focus:outline-0 focus:ring-0 border-none bg-slate-100 focus:border-none h-full placeholder:text-slate-500 px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
-                                    />
-                                </div>
-                            </label>
+                        <form onSubmit={handleSearch} className="hidden md:block" role="search" aria-label="Buscar empresas">
+                            <div className="flex items-center w-[350px] max-w-[30vw] h-12 rounded-full bg-white/90 backdrop-blur border border-slate-200 shadow-sm px-3 pr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-slate-400 mr-2" fill="currentColor" viewBox="0 0 256 256" aria-hidden>
+                                    <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z" />
+                                </svg>
+                                <input
+                                    placeholder="Buscar empresas..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="flex-1 bg-transparent border-0 outline-none focus:ring-0 text-slate-900 placeholder:text-slate-400 text-sm md:text-base px-1"
+                                    aria-label="Texto de búsqueda"
+                                />
+                                <button
+                                    type="submit"
+                                    className="ml-2 inline-flex items-center gap-1.1 h-9 px-4 rounded-full text-white text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+                                >
+                                    Buscar
+                                    <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M5 12h14"/>
+                                        <path d="m12 5 7 7-7 7"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </form>
                         
                         <div className="flex gap-2 items-center">
+                            {/* Campana de notificaciones */}
+                            {user && (
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setNotifOpen(v=>!v)}
+                                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/60 backdrop-blur border border-slate-200 hover:shadow-sm"
+                                        aria-label="Notificaciones"
+                                    >
+                                        <svg className="w-5 h-5 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                                        {unreadCount>0 && (
+                                            <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center shadow">{unreadCount}</span>
+                                        )}
+                                    </button>
+                                    {notifOpen && (
+                                        <div className="absolute right-0 mt-2 w-80 max-w-[90vw] rounded-xl border border-slate-200 bg-white/95 backdrop-blur shadow-lg p-2 z-50">
+                                            <div className="flex items-center justify-between px-2 py-1">
+                                                <span className="text-sm font-semibold text-slate-800">Notificaciones</span>
+                                                <button onClick={markAllRead} className="text-[11px] text-indigo-600 hover:underline">Marcar todas como leídas</button>
+                                            </div>
+                                            <div className="max-h-80 overflow-auto divide-y divide-slate-100" role="list">
+                                                {notifications.length===0 ? (
+                                                    <div className="px-3 py-4 text-sm text-slate-500">No tienes notificaciones</div>
+                                                ) : notifications.map(n => (
+                                                    <div key={n._id} role="listitem" className={`px-3 py-3 ${!n.readAt ? 'bg-indigo-50/40' : 'bg-white'} hover:bg-slate-50 transition-colors`}>
+                                                        <div className="flex items-start gap-3">
+                                                            <div className={`mt-0.5 w-8 h-8 shrink-0 rounded-full flex items-center justify-center ${!n.readAt ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`} aria-hidden>
+                                                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-slate-800 text-[13px] leading-snug">
+                                                                    {typeof n.company === 'object' && (n.company as any)?.name ? (
+                                                                        <>
+                                                                            La empresa <span className="font-semibold text-slate-900">{(n.company as any).name}</span> respondió tu review.
+                                                                        </>
+                                                                    ) : (
+                                                                        n.message
+                                                                    )}
+                                                                </p>
+                                                                <div className="mt-2 flex items-center justify-between gap-2">
+                                                                    <span className="text-[11px] text-slate-400">{timeAgo(n.createdAt)}</span>
+                                                                    {typeof n.company === 'object' && (n.company as any)?.slug && (
+                                                                        <Link to={`/companies/${(n.company as any).slug}`} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-200 text-[12px] text-indigo-700 hover:bg-indigo-50 hover:border-indigo-200">
+                                                                            Ver empresa
+                                                                            <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                                                        </Link>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            {!n.readAt && (
+                                                                <button onClick={()=>markRead(n._id)} className="text-[11px] text-indigo-600 hover:text-indigo-700 hover:underline ml-2 shrink-0">Marcar leído</button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                             {/* Botón destacado siempre visible para escribir experiencia */}
                             <button
                                 onClick={handleWriteReview}
@@ -521,6 +702,8 @@ import React, { useState, useEffect, useRef } from 'react';
                                                         </div>
                                                     ))}
                                                 </div>
+                                            ) : companiesError ? (
+                                                <div className="p-6 rounded-xl border border-dashed border-red-300 text-center text-sm text-red-600">{companiesError}</div>
                                             ) : topCompanies.length > 0 ? (
                                                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                                                     {topCompanies.map((company, idx) => (

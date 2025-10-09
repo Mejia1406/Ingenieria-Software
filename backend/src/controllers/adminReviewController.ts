@@ -6,30 +6,34 @@ import { AuthRequest } from '../middleware/auth';
 
 export const listReviewsAdmin = async (req: Request, res: Response) => {
   try {
-    const status = (req.query.status as string) || 'pending';
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
-    const skip = (page - 1) * limit;
-    const rating = req.query.rating ? parseInt(req.query.rating as string) : undefined;
-    const companyId = req.query.company as string | undefined;
-    const sortBy = (req.query.sortBy as string) || 'createdAt';
-    const sortOrder = (req.query.sortOrder as string) === 'asc' ? 1 : -1;
+    const status = (req.query.status as string) || 'pending'; // ese es el estado en que esta la review (pendiente, aprobada, rechazada), siempre empieza como pending
+    const page = parseInt(req.query.page as string) || 1; // pagina actual, si no viene en la query se pone 1 por defecto
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 100); // limite de reviews por pagina, si no viene en la query se pone 20 por defecto, pero nunca puede ser mas de 100
+    const skip = (page - 1) * limit; // se calcula el numero de reviews a saltar para la paginacion como en el codigo de adminCompanyController
+    const rating = req.query.rating ? parseInt(req.query.rating as string) : undefined; // se filtra por calificacion si viene en la query y si no viene se pone undefined
+    const companyId = req.query.company as string | undefined; // se filtra por id de empresa si viene en la query y si no viene se pone undefined
+    const sortBy = (req.query.sortBy as string) || 'createdAt'; // se ordena por la fecha de creacion
+    const sortOrder = (req.query.sortOrder as string) === 'asc' ? 1 : -1; // se ordena de forma mas nuevas a mas viejas
 
-    const query: any = {};
-    if (status) query.moderationStatus = status;
-    if (typeof rating === 'number') query.overallRating = rating;
-    if (companyId) query.company = companyId;
+    const query: any = {}; // se crea un objeto vacio para ir agregando los filtros
+    if (status) query.moderationStatus = status; // si viene el esstado se agrega al query o sea si es pending, approved o rejected va a estar en el query(o sea en la consulta a la base de datos)
+    if (typeof rating === 'number') query.overallRating = rating; // si viene la calificacion se agrega al query
+    if (companyId) query.company = companyId; // si viene el id de la empresa se agrega al query
 
+    // todo este bloque que viene es para que el admin pueda ver todas las reviews, incluso las que no son visibles para los usuarios normales
+    // porque las reviews que estan rechazadas o que fueron reportadas y estan en revision no son visibles para los usuarios normales
+    // pero el admin tiene que poder verlas para poder moderarlas y decidir si las aprueba o las rechaza 
     const [reviews, total] = await Promise.all([
       Review.find(query)
-        .populate('author', 'firstName lastName userType')
-        .populate('company', 'name slug')
-        .sort({ [sortBy]: sortOrder })
-        .skip(skip)
-        .limit(limit),
-      Review.countDocuments(query)
+        .populate('author', 'firstName lastName userType') // aca se usa populate para traer los datos del autor de la review (nombre, apellido y tipo de usuario)
+        .populate('company', 'name slug') // lo mismo pero con la empresa (nombre y slug) el slug es el identificador unico en la URL
+        .sort({ [sortBy]: sortOrder }) // se ordena por la fecha de creacion
+        .skip(skip) // se saltan las reviews de las paginas anteriores
+        .limit(limit), // se limita el numero de reviews por pagina
+      Review.countDocuments(query) // se cuenta el total de reviews que cumplen con el query (filtros)
     ]);
 
+    // ya despues todo se responde con un json que tiene las reviews y la informacion
     res.json({
       success: true,
       data: {
@@ -38,7 +42,7 @@ export const listReviewsAdmin = async (req: Request, res: Response) => {
           page,
             limit,
             total,
-            pages: Math.ceil(total / limit)
+            pages: Math.ceil(total / limit) 
         }
       }
     });

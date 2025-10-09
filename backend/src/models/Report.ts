@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-export type ReportTargetType = 'review' | 'company';
+export type ReportTargetType = 'review' | 'company'; // Tipos de entidades que se pueden reportar cualquiera de las dos
 export type ReportReason = 'spam' | 'ofensivo' | 'discriminacion' | 'informacion_privada' | 'engano' | 'otro';
 
 export interface IReport extends Document {
@@ -8,7 +8,7 @@ export interface IReport extends Document {
   targetType: ReportTargetType;
   targetId: mongoose.Types.ObjectId; // ID of review or company
   reason: ReportReason;
-  details?: string;
+  details?: string; // Esto es opcional, puede ser que el usuario no quiera dar detalles adicionales
   status: 'pending' | 'dismissed' | 'confirmed';
   moderator?: mongoose.Types.ObjectId;
   resolutionNote?: string;
