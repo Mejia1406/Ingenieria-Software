@@ -5,7 +5,6 @@ import HomePage from './pages/Home';
 import Companies from "./pages/Companies";
 import UserProfile from "./pages/UserProfile";
 import WriteReview from "./pages/WriteReview";
-import WriteReviewModal from './pages/WriteReview';
 import CompanyDetail from './pages/CompanyDetail';
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -33,9 +32,8 @@ function App() {
         <Route path="/" element={<HomePage />} />
   <Route path="/companies" element={<Companies />} />
         <Route path="/profile" element={<UserProfile />} />
-        <Route path="/write-review" element={<WriteReview isOpen={false} onClose={function (): void {
-          throw new Error('Function not implemented.');
-        } } user={null}/>} />
+        {/* Ruta /write-review desactivada en modo página: redirige al home para evitar error */}
+        <Route path="/write-review" element={<Navigate to="/" replace />} />
         <Route path="/companies/:slug" element={<CompanyDetail />} />
         <Route path="/admin" element={<AdminRoute element={<AdminLayout />} />}> 
           <Route index element={<AdminDashboard />} />

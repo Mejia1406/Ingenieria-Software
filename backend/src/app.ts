@@ -4,7 +4,6 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
-import { ensureAdmin } from './securityAdmin/ensureAdmin';
 
 
 import authRoutes from './routes/auth';

@@ -1,1 +1,17 @@
-node_modules
+# Root ignores
+node_modules/
+.DS_Store
+*.log
+
+# Environment files
+.env
+.env.*.local
+
+# Build outputs
+backend/dist/
+frontend/build/
+
+# IDE/editor
+.vscode/
+.idea/
+
