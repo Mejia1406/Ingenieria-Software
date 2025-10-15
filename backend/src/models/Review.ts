@@ -43,12 +43,26 @@ export interface IReview extends Document {
   isVerified?: boolean;
   isAnonymous?: boolean;
   moderationStatus?: "pending" | "approved" | "rejected";
+  moderatedAt?: Date;
+  moderatedBy?: mongoose.Types.ObjectId;
+  moderationReason?: string;
 
   helpfulVotes?: number;
   totalVotes?: number;
+  unhelpfulVotes?: number;
+  helpfulVoters?: mongoose.Types.ObjectId[];
+  unhelpfulVoters?: mongoose.Types.ObjectId[];
 
   isVisible?: boolean;
   tags?: string[];
+
+  // Recruiter / company official response
+  recruiterResponse?: {
+    responder: mongoose.Types.ObjectId; // user (recruiter/admin) who responded
+    content: string;
+    createdAt: Date;
+    updatedAt?: Date;
+  };
 
   createdAt: Date;
   updatedAt: Date;
@@ -111,12 +125,24 @@ const ReviewSchema: Schema = new Schema(
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
+    moderatedAt: { type: Date },
+    moderatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    moderationReason: { type: String, maxlength: 500 },
 
     helpfulVotes: { type: Number, default: 0 },
     totalVotes: { type: Number, default: 0 },
+  unhelpfulVotes: { type: Number, default: 0 },
+  helpfulVoters: [{ type: Schema.Types.ObjectId, ref: 'User', index: true }],
+  unhelpfulVoters: [{ type: Schema.Types.ObjectId, ref: 'User', index: true }],
 
     isVisible: { type: Boolean, default: true },
     tags: [{ type: String, trim: true, maxlength: 30 }],
+    recruiterResponse: {
+      responder: { type: Schema.Types.ObjectId, ref: 'User' },
+      content: { type: String, trim: true, maxlength: 2000 },
+      createdAt: { type: Date },
+      updatedAt: { type: Date }
+    }
   },
   { timestamps: true }
 );

@@ -34,8 +34,8 @@ const registerValidation = [
         .withMessage('Last name must be between 2 and 50 characters'),
     body('userType')
         .optional()
-        .isIn(['candidate', 'employee', 'recruiter'])
-        .withMessage('User type must be candidate, employee, or recruiter')
+        .isIn(['candidate', 'employee'])
+        .withMessage('User type must be candidate or employee (recruiter requires approval)')
 ];
 
 // Login validation

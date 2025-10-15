@@ -42,12 +42,15 @@ export const register = async (req: Request, res: Response) => {
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         // Create new user
+        // No permitir crear directamente recruiter
+        const sanitizedUserType = (userType === 'recruiter') ? 'candidate' : (userType || 'candidate');
+
         const user = new User({
             email,
             password: hashedPassword,
             firstName,
             lastName,
-            userType: userType || 'candidate',
+            userType: sanitizedUserType,
             location: location || { city: '', country: '' }
         });
 
@@ -66,6 +69,7 @@ export const register = async (req: Request, res: Response) => {
             location: user.location,
             isVerified: user.isVerified,
             reputation: user.reputation,
+            recruiterInfo: user.recruiterInfo,
             createdAt: user.createdAt
         };
 
@@ -125,6 +129,7 @@ export const login = async (req: Request, res: Response) => {
             isVerified: user.isVerified,
             reputation: user.reputation,
             profilePicture: user.profilePicture,
+            recruiterInfo: user.recruiterInfo,
             createdAt: user.createdAt
         };
 
@@ -150,7 +155,7 @@ export const login = async (req: Request, res: Response) => {
 // Get current user profile
 export const getProfile = async (req: AuthRequest, res: Response) => {
     try {
-        const user = await User.findById(req.user?.id).select('-password');
+    const user = await User.findById(req.user?.id).select('-password');
         
         if (!user) {
             return res.status(404).json({
@@ -186,6 +191,10 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
         delete updates._id;
         delete updates.isVerified;
         delete updates.reputation;
+
+        // Proteger recruiterInfo y userType en update profile
+        delete (updates as any).recruiterInfo;
+        delete (updates as any).userType;
 
         const user = await User.findByIdAndUpdate(
             userId,

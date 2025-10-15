@@ -7,6 +7,17 @@ export interface IUser extends Document {
     lastName: string;
     userType: 'candidate' | 'employee' | 'recruiter' | 'admin';
     profilePicture?: string;
+    recruiterInfo?: {
+        companyName: string; // Nombre de la empresa que declara
+        companyId?: mongoose.Types.ObjectId; // Cuando se asocie a una Company existente (opcional)
+        companyEmail: string; // Correo corporativo usado para validar dominio
+        roleTitle?: string; // Título del cargo (Recruiter, HR Manager, Talent Acquisition, etc.)
+        status: 'pending' | 'approved' | 'rejected';
+        requestedAt: Date;
+        approvedAt?: Date;
+        rejectedAt?: Date;
+        adminNote?: string; // Mensaje de rechazo o nota de aprobación
+    };
     
     // Professional info
     professionalSummary?: string;
@@ -36,6 +47,10 @@ export interface IUser extends Document {
     // Timestamps
     createdAt: Date;
     updatedAt: Date;
+
+    // Auth security
+    failedLoginAttempts?: number;
+    lockUntil?: Date;
 }
 
 const UserSchema: Schema = new Schema({
@@ -45,7 +60,8 @@ const UserSchema: Schema = new Schema({
         unique: true,
         lowercase: true,
         trim: true,
-        match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
+    // Updated regex: permite TLD de longitud variable (>=2) y formato más amplio (RFC simplificado)
+    match: [/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/ , 'Please enter a valid email']
     },
     password: {
         type: String,
@@ -143,15 +159,28 @@ const UserSchema: Schema = new Schema({
             type: String,
             trim: true
         }
-    }
+    },
+    recruiterInfo: {
+        companyName: { type: String, trim: true },
+        companyId: { type: Schema.Types.ObjectId, ref: 'Company' },
+        companyEmail: { type: String, trim: true, lowercase: true },
+        roleTitle: { type: String, trim: true, maxlength: 100 },
+        status: { type: String, enum: ['pending', 'approved', 'rejected'] },
+        requestedAt: { type: Date },
+        approvedAt: { type: Date },
+        rejectedAt: { type: Date },
+        adminNote: { type: String, trim: true, maxlength: 300 }
+    },
+    failedLoginAttempts: { type: Number, default: 0 },
+    lockUntil: { type: Date, default: null }
 }, {
     timestamps: true
 });
 
-// Indexes for performance
-UserSchema.index({ email: 1 });
+// Indexes for performance - REMOVED DUPLICATE EMAIL INDEX
 UserSchema.index({ userType: 1 });
 UserSchema.index({ 'location.city': 1, 'location.country': 1 });
 UserSchema.index({ reputation: -1 });
+UserSchema.index({ 'recruiterInfo.status': 1 });
 
 export default mongoose.model<IUser>('User', UserSchema);

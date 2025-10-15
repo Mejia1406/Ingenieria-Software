@@ -44,6 +44,7 @@ export interface ICompany extends Document {
     // SEO fields
     metaDescription?: string;
     keywords: string[];
+
     
     createdAt: Date;
     updatedAt: Date;
@@ -193,14 +194,15 @@ const CompanySchema: Schema = new Schema({
     keywords: [{
         type: String,
         trim: true
-    }]
+    }],
+
+    // (followers/faqs removed by request revert)
 }, {
     timestamps: true
 });
 
-// Indexes for performance and search
+// Indexes for performance and search - REMOVED DUPLICATE SLUG INDEX
 CompanySchema.index({ name: 'text', description: 'text' });
-CompanySchema.index({ slug: 1 });
 CompanySchema.index({ industry: 1 });
 CompanySchema.index({ 'headquarters.city': 1, 'headquarters.country': 1 });
 CompanySchema.index({ overallRating: -1 });

@@ -6,10 +6,10 @@ export const validateRequest = (req: Request, res: Response, next: NextFunction)
     const errors = validationResult(req);
     
     if (!errors.isEmpty()) {
-        const formattedErrors = errors.array().map((error: ValidationError) => ({
-            field: 'field' in error ? error.field : error.type,
+        const formattedErrors = errors.array().map((error: any) => ({
+            field: error.param || error.path || error.type || 'unknown',
             message: error.msg,
-            value: 'value' in error ? error.value : undefined
+            value: error.value
         }));
 
         return res.status(400).json({

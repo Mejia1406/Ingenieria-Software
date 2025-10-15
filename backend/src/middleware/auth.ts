@@ -13,7 +13,8 @@ interface JwtPayload {
 // Middleware to verify JWT token
 export const authenticate = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-        const token = req.header('Authorization')?.replace('Bearer ', '');
+    // Read Bearer token from Authorization header only
+    const token = req.header('Authorization')?.replace('Bearer ', '');
         
         if (!token) {
             return res.status(401).json({

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 
 // Holaaaaa, oe esto es para definir el tipo de usuario, pues lo que se va a recibir
@@ -8,6 +9,17 @@ interface User {
     firstName: string;
     lastName: string;
     userType: string;
+    recruiterInfo?: {
+        companyName?: string;
+        companyId?: string;
+        companyEmail?: string;
+        roleTitle?: string;
+        status?: 'pending' | 'approved' | 'rejected';
+        requestedAt?: string;
+        approvedAt?: string;
+        rejectedAt?: string;
+        adminNote?: string;
+    };
     profilePicture?: string;
     professionalSummary?: string;
     skills: string[];
@@ -85,7 +97,7 @@ const UserProfile: React.FC = () => {
     const [basicInfoForm, setBasicInfoForm] = useState({
         firstName: '',
         lastName: '',
-        userType: 'candidato'
+    userType: 'candidate'
     });
 
     const [locationForm, setLocationForm] = useState({
@@ -111,6 +123,48 @@ const UserProfile: React.FC = () => {
         fieldOfStudy: '',
         graduationYear: new Date().getFullYear()
     });
+
+    // Recruiter request state
+    const [recruiterCompanyName, setRecruiterCompanyName] = useState('');
+    const [recruiterCompanyEmail, setRecruiterCompanyEmail] = useState('');
+    const [recruiterRoleTitle, setRecruiterRoleTitle] = useState('');
+    const [submittingRecruiter, setSubmittingRecruiter] = useState(false);
+    const [recruiterError, setRecruiterError] = useState('');
+    const recruiterStatus = user?.recruiterInfo?.status;
+
+    const submitRecruiterRequest = async () => {
+        setRecruiterError('');
+        setSubmittingRecruiter(true);
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setRecruiterError('Debe iniciar sesión.');
+                return;
+            }
+            const res = await fetch('http://localhost:5000/api/recruiters/request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ companyName: recruiterCompanyName, companyEmail: recruiterCompanyEmail, roleTitle: recruiterRoleTitle })
+            });
+            const data = await res.json();
+            if (data.success) {
+                // Refetch profile to get recruiterInfo
+                await fetchUserProfile();
+                setRecruiterCompanyName('');
+                setRecruiterCompanyEmail('');
+                setRecruiterRoleTitle('');
+                toast.success('Solicitud enviada');
+            } else {
+                setRecruiterError(data.message || 'Error enviando la solicitud');
+                toast.error(data.message || 'Error enviando solicitud');
+            }
+        } catch (e) {
+            setRecruiterError('Error de red enviando la solicitud');
+            toast.error('Error de red');
+        } finally {
+            setSubmittingRecruiter(false);
+        }
+    };
 
     // Esto hace que cuando se abre el perfil se cargue todos los datos de una
     useEffect(() => {
@@ -428,6 +482,75 @@ const UserProfile: React.FC = () => {
                                 )}
                             </div>
                         </div>
+
+                        {/* Recruiter Request */}
+                        <div className="bg-white rounded-lg shadow-sm border p-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-lg font-semibold">Rol de Reclutador</h2>
+                            </div>
+                            {user.userType === 'recruiter' && recruiterStatus === 'approved' && (
+                                <div className="space-y-2">
+                                    <p className="text-green-600 font-medium">Eres reclutador aprobado.</p>
+                                    {user.recruiterInfo?.companyName && <p className="text-sm text-gray-700">Empresa: {user.recruiterInfo.companyName}</p>}
+                                    {user.recruiterInfo?.roleTitle && <p className="text-sm text-gray-700">Rol: {user.recruiterInfo.roleTitle}</p>}
+                                </div>
+                            )}
+                            {user.userType !== 'recruiter' && (!recruiterStatus || recruiterStatus === 'rejected') && (
+                                <div className="space-y-4">
+                                    {recruiterStatus === 'rejected' && (
+                                        <div className="p-3 rounded bg-red-50 text-red-700 text-sm">
+                                            Tu solicitud fue rechazada {user.recruiterInfo?.adminNote && (<>: <strong>{user.recruiterInfo.adminNote}</strong></>)}.
+                                            Puedes volver a intentarlo.
+                                        </div>
+                                    )}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la Empresa</label>
+                                        <input
+                                            type="text"
+                                            value={recruiterCompanyName}
+                                            onChange={(e) => setRecruiterCompanyName(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Correo Corporativo</label>
+                                        <input
+                                            type="email"
+                                            value={recruiterCompanyEmail}
+                                            onChange={(e) => setRecruiterCompanyEmail(e.target.value)}
+                                            placeholder="tu@empresa.com"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Título del Rol (opcional)</label>
+                                        <input
+                                            type="text"
+                                            value={recruiterRoleTitle}
+                                            onChange={(e) => setRecruiterRoleTitle(e.target.value)}
+                                            placeholder="Recruiter, HR Manager..."
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                    {recruiterError && <p className="text-sm text-red-600">{recruiterError}</p>}
+                                    <button
+                                        disabled={submittingRecruiter || !recruiterCompanyName || !recruiterCompanyEmail}
+                                        onClick={submitRecruiterRequest}
+                                        className="w-full bg-purple-600 disabled:opacity-50 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+                                    >
+                                        {submittingRecruiter ? 'Enviando...' : 'Solicitar Rol de Reclutador'}
+                                    </button>
+                                </div>
+                            )}
+                            {user.userType !== 'recruiter' && recruiterStatus === 'pending' && (
+                                <div className="space-y-2">
+                                    <p className="text-sm text-amber-600">Solicitud enviada. Estado: Pendiente de aprobación.</p>
+                                    {user.recruiterInfo?.companyName && <p className="text-sm text-gray-700">Empresa: {user.recruiterInfo.companyName}</p>}
+                                    {user.recruiterInfo?.companyEmail && <p className="text-sm text-gray-700">Correo: {user.recruiterInfo.companyEmail}</p>}
+                                    <p className="text-xs text-gray-500">Fecha: {user.recruiterInfo?.requestedAt && new Date(user.recruiterInfo.requestedAt).toLocaleString()}</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Right Column */}
@@ -545,12 +668,11 @@ const UserProfile: React.FC = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Usuario</label>
                         <select
                             value={basicInfoForm.userType}
-                            onChange={(e) => setBasicInfoForm({ ...basicInfoForm, userType: e.target.value })}
+                            onChange={(e) => setBasicInfoForm({ ...basicInfoForm, userType: e.target.value === 'recruiter' ? 'candidate' : e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
-                            <option value="candidate">Trabajo Candidato</option>
-                            <option value="employee">Empleado Actual/Anterior</option>
-                            <option value="recruiter">Reclutador</option>
+                            <option value="candidate">Candidato</option>
+                            <option value="employee">Empleado</option>
                         </select>
                     </div>
                     <div className="flex gap-3 pt-4">

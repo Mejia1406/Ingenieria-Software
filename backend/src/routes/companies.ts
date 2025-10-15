@@ -64,6 +64,7 @@ router.get(
   getCompany
 );
 
+
 /**
  * GET /api/companies/:slug/reviews
  * Obtener reviews de una empresa

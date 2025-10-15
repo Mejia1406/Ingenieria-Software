@@ -338,3 +338,4 @@ export const searchCompanies = async (req: Request, res: Response) => {
         });
     }
 };
+
