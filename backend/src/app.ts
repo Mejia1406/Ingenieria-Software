@@ -9,11 +9,11 @@ import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/auth';
 import companyRoutes from './routes/companies';
 import experienceRoutes from './routes/experiences';
-import reviewRoutes from './routes/reviews'
-import adminRoutes from './routes/admin'
-import recruiterRoutes from './routes/recruiters'
-import analyticsRoutes from './routes/analytics'
-import notificationRoutes from './routes/notifications'
+import reviewRoutes from './routes/reviews';
+import adminRoutes from './routes/admin';
+import recruiterRoutes from './routes/recruiters';
+import analyticsRoutes from './routes/analytics';
+import notificationRoutes from './routes/notifications';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -43,9 +43,12 @@ app.use(cors({
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+// cookie parser removed
 
 // Apply rate limiting to API routes
 app.use('/api/', limiter);
+
+// Keep global limiter only
 
 // API Routes
 app.use('/api/auth', authRoutes);

@@ -216,6 +216,8 @@ POST /api/auth/login
 }
 ```
 
+<!-- Nota: sección de cookies/CSRF revertida según solicitud -->
+
 ### **🏢 Gestión de Empresas**
 
 ```javascript

@@ -47,6 +47,10 @@ export interface IUser extends Document {
     // Timestamps
     createdAt: Date;
     updatedAt: Date;
+
+    // Auth security
+    failedLoginAttempts?: number;
+    lockUntil?: Date;
 }
 
 const UserSchema: Schema = new Schema({
@@ -166,7 +170,9 @@ const UserSchema: Schema = new Schema({
         approvedAt: { type: Date },
         rejectedAt: { type: Date },
         adminNote: { type: String, trim: true, maxlength: 300 }
-    }
+    },
+    failedLoginAttempts: { type: Number, default: 0 },
+    lockUntil: { type: Date, default: null }
 }, {
     timestamps: true
 });

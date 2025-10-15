@@ -5,7 +5,6 @@ interface AuthFormData {
     password: string;
     firstName?: string;
     lastName?: string;
-    userType?: 'candidate' | 'employee' | 'recruiter';
     confirmPassword?: string;
 }
 
@@ -21,11 +20,11 @@ const AuthPage: React.FC<AuthProps> = ({ onClose, onSuccess }) => {
         password: '',
         firstName: '',
         lastName: '',
-        userType: 'candidate',
         confirmPassword: ''
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -79,30 +78,20 @@ const AuthPage: React.FC<AuthProps> = ({ onClose, onSuccess }) => {
         try {
             const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
             const fullURL = `http://localhost:5000${endpoint}`;
-            
-            // Debug logs
-            console.log('=== DEBUG INFO ===');
-            console.log('isLogin:', isLogin);
-            console.log('endpoint:', endpoint);
-            console.log('fullURL:', fullURL);
-            
+            // prepare payload
             const requestData = isLogin 
                 ? { email: formData.email, password: formData.password }
                 : {
                     email: formData.email,
                     password: formData.password,
                     firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    userType: formData.userType
+                    lastName: formData.lastName
                 };
-
-            console.log('requestData:', requestData);
-            console.log('==================');
 
             const response = await fetch(fullURL, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(requestData),
             });
@@ -114,6 +103,7 @@ const AuthPage: React.FC<AuthProps> = ({ onClose, onSuccess }) => {
             console.log('Response data:', data);
 
             if (response.ok && data.success) {
+                // Store token and user for Authorization header flow
                 localStorage.setItem('token', data.data.token);
                 localStorage.setItem('user', JSON.stringify(data.data.user));
                 onSuccess(data.data.user, data.data.token);
@@ -137,8 +127,8 @@ const AuthPage: React.FC<AuthProps> = ({ onClose, onSuccess }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-8 w-full max-w-md mx-4 relative">
+        <div className="fixed inset-0 bg-gradient-to-br from-blue-600/20 to-purple-700/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-8 w-full max-w-md relative shadow-2xl border border-gray-100">
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -148,9 +138,12 @@ const AuthPage: React.FC<AuthProps> = ({ onClose, onSuccess }) => {
                     </svg>
                 </button>
 
-                <h2 className="text-2xl font-bold mb-6 text-center">
-                    {isLogin ? 'Sign In' : 'Create Account'}
+                <h2 className="text-3xl font-extrabold mb-2 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                    {isLogin ? 'Inicia sesión' : 'Crea tu cuenta'}
                 </h2>
+                <p className="text-center text-gray-500 mb-6">
+                    {isLogin ? 'Accede para escribir y gestionar reseñas' : 'Únete para compartir y descubrir experiencias laborales'}
+                </p>
 
                 {errors.general && (
                     <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -163,7 +156,7 @@ const AuthPage: React.FC<AuthProps> = ({ onClose, onSuccess }) => {
                         <div className="grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    First Name
+                                    Nombre
                                 </label>
                                 <input
                                     type="text"
@@ -180,7 +173,7 @@ const AuthPage: React.FC<AuthProps> = ({ onClose, onSuccess }) => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Last Name
+                                    Apellido
                                 </label>
                                 <input
                                     type="text"
@@ -216,37 +209,31 @@ const AuthPage: React.FC<AuthProps> = ({ onClose, onSuccess }) => {
                         )}
                     </div>
 
-                    {!isLogin && (
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                I am a...
-                            </label>
-                            <select
-                                name="userType"
-                                value={formData.userType}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="candidate">Job Candidate</option>
-                                <option value="employee">Current/Former Employee</option>
-                                <option value="recruiter">Recruiter</option>
-                            </select>
-                        </div>
-                    )}
+                    {/* Removed confusing role selection from signup. Recruiter role will be requested later from profile. */}
 
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Password
+                            Contraseña
                         </label>
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                errors.password ? 'border-red-500' : 'border-gray-300'
-                            }`}
-                        />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                    errors.password ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(s => !s)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-sm"
+                                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                            >
+                                {showPassword ? 'Ocultar' : 'Mostrar'}
+                            </button>
+                        </div>
                         {errors.password && (
                             <p className="text-red-500 text-sm mt-1">{errors.password}</p>
                         )}
@@ -255,7 +242,7 @@ const AuthPage: React.FC<AuthProps> = ({ onClose, onSuccess }) => {
                     {!isLogin && (
                         <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Confirm Password
+                                Confirmar contraseña
                             </label>
                             <input
                                 type="password"
@@ -275,9 +262,9 @@ const AuthPage: React.FC<AuthProps> = ({ onClose, onSuccess }) => {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-4 rounded-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
-                        {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
+                        {isLoading ? 'Un momento…' : (isLogin ? 'Iniciar sesión' : 'Crear cuenta')}
                     </button>
                 </form>
 
@@ -292,13 +279,12 @@ const AuthPage: React.FC<AuthProps> = ({ onClose, onSuccess }) => {
                                 password: '',
                                 firstName: '',
                                 lastName: '',
-                                userType: 'candidate',
                                 confirmPassword: ''
                             });
                         }}
                         className="text-blue-600 hover:text-blue-800"
                     >
-                        {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                        {isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
                     </button>
                 </div>
             </div>

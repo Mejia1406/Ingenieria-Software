@@ -52,7 +52,7 @@ const Companies: React.FC = () => {
   const locations = ["All", ...Array.from(new Set(companies.map(c => c.headquarters?.city || "").filter(Boolean)))];
   const sizes = ["All", "1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"];
 
-  // Load user from localStorage
+  // Load user from localStorage 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
