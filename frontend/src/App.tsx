@@ -13,6 +13,8 @@ import AdminCompanies from './pages/admin/AdminCompanies';
 import AdminCompanyForm from './pages/admin/AdminCompanyForm';
 import AdminRecruiters from './pages/admin/AdminRecruiters';
 import RecruiterAnalytics from './pages/RecruiterAnalytics';
+import Chatbot from './components/chatbot';
+import Foro from './pages/Foro';
 
 // Simple Protected Admin Route using localStorage (puede mejorarse con contexto global)
 const AdminRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
@@ -25,12 +27,13 @@ const AdminRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
 };
 
 function App() {
+  
   return (
     <Router>
       <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<HomePage />} />
-  <Route path="/companies" element={<Companies />} />
+        <Route path="/companies" element={<Companies />} />
         <Route path="/profile" element={<UserProfile />} />
         {/* Ruta /write-review desactivada en modo página: redirige al home para evitar error */}
         <Route path="/write-review" element={<Navigate to="/" replace />} />
@@ -45,7 +48,9 @@ function App() {
           <Route path="recruiters" element={<AdminRecruiters />} />
         </Route>
         <Route path="/recruiter/analytics" element={<RecruiterAnalytics />} />
+        <Route path="/foro" element={<Foro />} />
       </Routes>
+      <Chatbot />
     </Router>
   );
 }
