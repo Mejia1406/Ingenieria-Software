@@ -14,6 +14,9 @@ import adminRoutes from './routes/admin';
 import recruiterRoutes from './routes/recruiters';
 import analyticsRoutes from './routes/analytics';
 import notificationRoutes from './routes/notifications';
+import chatbotRoutes from './routes/chatbot';
+import forumRoutes from './routes/forum';
+
 
 // Cargar variables de entorno
 dotenv.config();
@@ -43,6 +46,10 @@ app.use(cors({
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/forum', forumRoutes);
+
 // cookie parser removed
 
 // Apply rate limiting to API routes

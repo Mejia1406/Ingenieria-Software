@@ -436,7 +436,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                         </div>
                         <nav className="hidden md:flex items-center gap-6 xl:gap-8 text-sm font-medium anim-fade-in anim-delay-2">
                             <a className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-2" href="#">Inicio</a>
-                            <a className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-3" href="#">Reseñas</a>
+                            <a className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-3" href="/foro">Foro</a>
                             <Link className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-4" to="/companies">Empresas</Link>
                         </nav>
                     </div>
