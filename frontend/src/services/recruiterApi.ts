@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:5000/api/recruiters';
+const API_BASE = 'https://ingenieria-software-1-ayxk.onrender.com/api/recruiters';
 
 function authHeaders() {
   const token = localStorage.getItem('token');
