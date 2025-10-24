@@ -308,7 +308,8 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
 
         const formatReviews = (n: number) => `${n} reseña${n === 1 ? '' : 's'}`;
 
-        // Recent reviews state
+
+        // Recent reviews state (global)
         interface RecentReview {
             _id: string;
             title?: string;
@@ -316,8 +317,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
             jobTitle?: string;
             reviewType?: string;
             createdAt?: string;
-            companySlug: string;
-            companyName: string;
+            company?: { name?: string; slug?: string };
             author?: {
                 firstName?: string;
                 lastName?: string;
@@ -353,43 +353,19 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
             return () => { if (reviewSlideRef.current) window.clearInterval(reviewSlideRef.current); };
         }, [reviewSlides]);
 
-        // Fetch recent reviews after companies load
+        // Fetch recent reviews global
         useEffect(() => {
             const fetchRecent = async () => {
-                if (loading || companies.length === 0) return; // wait until companies loaded
                 setLoadingReviews(true);
                 setReviewsError(null);
                 try {
-                    // We'll pull recent reviews from top 5 companies for variety
-                    const selection = [...companies]
-                        .sort((a,b)=> (b.totalReviews||0)-(a.totalReviews||0))
-                        .slice(0,5);
-                    const requests = selection.map(c => axios.get(`${API_URL}/companies/${c.slug}`));
-                    const results = await Promise.allSettled(requests);
-                    const aggregated: RecentReview[] = [];
-                    results.forEach((r, idx) => {
-                        if (r.status === 'fulfilled') {
-                            const data = r.value.data?.data;
-                            if (data?.recentReviews && Array.isArray(data.recentReviews)) {
-                                data.recentReviews.forEach((rev: any) => {
-                                    aggregated.push({
-                                        _id: rev._id,
-                                        title: rev.title,
-                                        overallRating: rev.overallRating,
-                                        jobTitle: rev.jobTitle,
-                                        reviewType: rev.reviewType,
-                                        createdAt: rev.createdAt,
-                                        companySlug: selection[idx].slug,
-                                        companyName: selection[idx].name,
-                                        author: rev.author
-                                    });
-                                });
-                            }
-                        }
-                    });
-                    // Sort by newest date
-                    aggregated.sort((a,b)=> new Date(b.createdAt||0).getTime() - new Date(a.createdAt||0).getTime());
-                    setRecentReviews(aggregated.slice(0,6));
+                    const res = await axios.get(`${API_URL}/reviews/recent?limit=9`);
+                    if (res.data?.success && Array.isArray(res.data.data)) {
+                        setRecentReviews(res.data.data);
+                    } else {
+                        setRecentReviews([]);
+                        setReviewsError('No se pudieron cargar las reseñas.');
+                    }
                 } catch (err:any) {
                     console.error('Error fetching recent reviews', err);
                     setReviewsError('No se pudieron cargar las reseñas.');
@@ -398,7 +374,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                 }
             };
             fetchRecent();
-        }, [loading, companies, API_URL]);
+        }, [API_URL]);
 
         const timeAgo = (iso?: string) => {
             if (!iso) return '';
@@ -783,6 +759,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                                                             className={`grid gap-6 sm:grid-cols-2 lg:grid-cols-3 transition-opacity duration-800 ease-in-out ${slideIdx===reviewSlide?'opacity-100':'opacity-0 pointer-events-none absolute inset-0'}`}
                                                         >
                                                             {group.map((rev) => {
+
                                                                 const initials = rev.author?.firstName && rev.author?.lastName ? `${rev.author.firstName[0]}${rev.author.lastName[0]}` : (rev.author?.firstName?.[0] || 'R');
                                                                 const typeLabelMap: Record<string,string> = { interview:'Entrevista', employee:'Empleado', intern:'Practicante', contractor:'Contrato' };
                                                                 const typeLabel = typeLabelMap[rev.reviewType||''] || 'General';
@@ -797,7 +774,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                                                                                     <p className="text-slate-800 font-semibold leading-tight line-clamp-1">{rev.jobTitle || 'Profesional'}</p>
                                                                                     <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-[11px] font-medium border border-indigo-100">{typeLabel}</span>
                                                                                 </div>
-                                                                                <p className="text-slate-500 text-xs mt-0.5 line-clamp-1">{rev.companyName}</p>
+                                                                                <p className="text-slate-500 text-xs mt-0.5 line-clamp-1">{rev.company?.name || 'Empresa'}</p>
                                                                             </div>
                                                                             <div className="flex items-center gap-1">
                                                                                 <span className="rating-pill shadow-sm !px-2 !h-6">{(rev.overallRating ?? 0).toFixed(1)}</span>
@@ -808,7 +785,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                                                                             {rev.reviewType === 'interview' ? 'Experiencia de entrevista' : 'Reseña reciente'} · <span className="text-slate-500">{timeAgo(rev.createdAt)}</span>
                                                                         </p>
                                                                         <footer className="flex items-center justify-between pt-2 border-t border-slate-200/70">
-                                                                            <Link to={`/companies/${rev.companySlug}`} className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
+                                                                            <Link to={`/companies/${rev.company?.slug}`} className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
                                                                                 Ver empresa
                                                                                 <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-80 group-hover:translate-x-0.5 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                                                                             </Link>
