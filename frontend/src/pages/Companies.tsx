@@ -82,25 +82,31 @@ const Companies: React.FC = () => {
     };
   }, []);
 
-  // Load companies from database
+  // Load companies from database with retry logic
   useEffect(() => {
-    const fetchCompanies = async () => {
+    let isMounted = true;
+    const fetchCompaniesWithRetry = async (retries = 0) => {
       setLoading(true);
       try {
         const response = await axios.get(`${API_URL}/companies`);
         if (response.data.success && response.data.data.companies) {
-          setCompanies(response.data.data.companies);
+          if (isMounted) setCompanies(response.data.data.companies);
+          if (isMounted) setLoading(false);
+          return;
         }
       } catch (error) {
-        console.error('Error fetching companies:', error);
-        // Use fallback data if API fails
-        
-      } finally {
-        setLoading(false);
+        if (isMounted) {
+          if (retries < 30) { // Retry for up to ~30 attempts (~1 min)
+            setTimeout(() => fetchCompaniesWithRetry(retries + 1), 2000); // 2s delay
+          } else {
+            setLoading(false);
+            console.error('No se pudo conectar con el backend después de varios intentos.', error);
+          }
+        }
       }
     };
-
-    fetchCompanies();
+    fetchCompaniesWithRetry();
+    return () => { isMounted = false; };
   }, [API_URL]);
 
   useEffect(() => {
