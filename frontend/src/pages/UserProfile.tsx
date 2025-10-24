@@ -80,6 +80,7 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, title, children 
 };
 
 // Aca en user es donde se guarda TODO del usuario, el loading es para que se cargue los datos
+const API_URL = process.env.REACT_APP_API_URL || 'https://ingenieria-software-1-ayxk.onrender.com/api';
 const UserProfile: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
@@ -141,7 +142,7 @@ const UserProfile: React.FC = () => {
                 setRecruiterError('Debe iniciar sesión.');
                 return;
             }
-            const res = await fetch('https://ingenieria-software-2025.vercel.app/api/recruiters/request', {
+            const res = await fetch(`${API_URL}/recruiters/request`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ companyName: recruiterCompanyName, companyEmail: recruiterCompanyEmail, roleTitle: recruiterRoleTitle })
@@ -180,7 +181,7 @@ const UserProfile: React.FC = () => {
                 return;
             }
 
-            const response = await fetch('https://ingenieria-software-2025.vercel.app/api/auth/profile', {
+            const response = await fetch(`${API_URL}/auth/profile`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -230,7 +231,7 @@ const UserProfile: React.FC = () => {
     const updateProfile = async (updates: any) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('https://ingenieria-software-2025.vercel.app/api/auth/profile', {
+            const response = await fetch(`${API_URL}/auth/profile`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
