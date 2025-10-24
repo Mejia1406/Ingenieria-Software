@@ -352,11 +352,6 @@ const Companies: React.FC = () => {
                       <p className="text-[#49739c] text-sm font-normal leading-normal">
                         Puntuación promedio: {company.overallRating || 0} · {company.totalReviews || 0} reseñas
                       </p>
-                      {company.headquarters && (
-                        <p className="text-[#49739c] text-xs font-normal leading-normal">
-                          📍 {company.headquarters.city}, {company.headquarters.country}
-                        </p>
-                      )}
                     </div>
                     {company.logo && (
                       <div
