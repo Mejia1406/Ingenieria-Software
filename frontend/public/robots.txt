@@ -1,3 +1,14 @@
+
 # https://www.robotstxt.org/robotstxt.html
+
 User-agent: *
-Disallow:
+Allow: /
+Sitemap: https://ingenieria-software-2025.vercel.app/sitemap.xml
+
+# Bloquea carpetas privadas o de desarrollo
+Disallow: /admin
+Disallow: /private
+Disallow: /temp
+
+# Permite todo el contenido público
+Allow: /
