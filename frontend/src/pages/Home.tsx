@@ -71,7 +71,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
     const [companiesError, setCompaniesError] = useState<string | null>(null); // para mostrar error si no cargan
         const dropdownRef = useRef<HTMLDivElement>(null); // esto detecta si se hace clic fuera del menú desplegable para cerrarlo
         const navigate = useNavigate(); // esto hace que se pueda navegar entre las páginas
-    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api'; // esta es la URL de la API del backend para hacer solicitudes 
+    const API_URL = process.env.REACT_APP_API_URL || 'https://ingenieria-software-2025.vercel.app/api'; // esta es la URL de la API del backend para hacer solicitudes 
 
         useEffect(() => { 
             const token = localStorage.getItem('token'); // aquí se obtiene el token del usuario(el token es como una llave secreta que confirma que el usuario ha iniciado sesión que se crea al iniciar sesión)

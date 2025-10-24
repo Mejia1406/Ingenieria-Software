@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'https://ingenieria-software-production.up.railway.app/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://ingenieria-software-1-ayxk.onrender.com/api';
 
 export interface ReplyResponse {
   success: boolean;

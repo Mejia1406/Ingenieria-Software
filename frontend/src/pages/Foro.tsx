@@ -16,7 +16,7 @@ const ForoHeader: React.FC<ForoHeaderProps> = ({ user, onWriteReview }) => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://ingenieria-software-2025.vercel.app/api';
 
   useEffect(() => {
     const fetchNotifications = async () => {

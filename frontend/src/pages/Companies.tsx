@@ -44,7 +44,7 @@ const Companies: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const routerLocation = useRouterLocation();
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://ingenieria-software-2025.vercel.app/api';
 
 
   // Get unique values for filters

@@ -141,7 +141,7 @@ const UserProfile: React.FC = () => {
                 setRecruiterError('Debe iniciar sesión.');
                 return;
             }
-            const res = await fetch('http://localhost:5000/api/recruiters/request', {
+            const res = await fetch('https://ingenieria-software-2025.vercel.app/api/recruiters/request', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ companyName: recruiterCompanyName, companyEmail: recruiterCompanyEmail, roleTitle: recruiterRoleTitle })
@@ -180,7 +180,7 @@ const UserProfile: React.FC = () => {
                 return;
             }
 
-            const response = await fetch('http://localhost:5000/api/auth/profile', {
+            const response = await fetch('https://ingenieria-software-2025.vercel.app/api/auth/profile', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -230,7 +230,7 @@ const UserProfile: React.FC = () => {
     const updateProfile = async (updates: any) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/auth/profile', {
+            const response = await fetch('https://ingenieria-software-2025.vercel.app/api/auth/profile', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

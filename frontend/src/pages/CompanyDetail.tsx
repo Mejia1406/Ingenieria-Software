@@ -122,7 +122,7 @@ const CompanyDetail: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://ingenieria-software-2025.vercel.app/api';
 
   // Fetch company and its recent reviews
   useEffect(() => {
@@ -620,7 +620,7 @@ const ReviewCard: React.FC<{ review: Review; onVoted: (r: Review)=>void; user: U
   const isLong = body.length > MAX;
   const display = expanded || !isLong ? body : body.slice(0, MAX) + '…';
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://ingenieria-software-2025.vercel.app/api';
   const voting = useRef(false);
 
   const handleVote = async (value: 'helpful' | 'unhelpful') => {

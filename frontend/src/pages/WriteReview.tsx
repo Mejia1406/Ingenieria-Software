@@ -71,7 +71,7 @@ const WriteReviewModal: React.FC<WriteReviewModalProps> = ({ isOpen, onClose, us
     const [companies, setCompanies] = useState<Company[]>([]);
     const [loadingCompanies, setLoadingCompanies] = useState(false);
 
-    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+    const API_URL = process.env.REACT_APP_API_URL || 'https://ingenieria-software-2025.vercel.app/api';
 
     // Load companies from database - this hook always runs
     useEffect(() => {

@@ -36,7 +36,7 @@ export default function Chatbot() {
     setInput('');
     setLoading(true);
     try {
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://ingenieria-software-2025.vercel.app/api';
       const conversationHistory = messages
         .filter(m => m.sender !== 'bot')
         .map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text }));
