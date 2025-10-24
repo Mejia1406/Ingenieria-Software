@@ -14,26 +14,6 @@ import { validateRequest } from '../middleware/validation';
 
 const router = Router();
 
-// Obtener reviews más recientes aprobadas de cualquier empresa
-router.get(
-  '/recent',
-  async (req, res, next) => {
-    // No requiere auth, solo reviews públicas
-    try {
-      const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
-      const reviews = await require('../models/Review').default.find({ moderationStatus: 'approved', isVisible: true })
-        .populate('author', 'firstName lastName userType isVerified')
-        .populate('company', 'name slug')
-        .sort({ createdAt: -1 })
-        .limit(limit)
-        .select('title overallRating reviewType jobTitle createdAt company author');
-      res.json({ success: true, data: reviews });
-    } catch (err) {
-      next(err);
-    }
-  }
-);
-
 // Crear review
 router.post(
   '/',
