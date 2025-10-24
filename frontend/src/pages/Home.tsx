@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
     import WriteReviewModal from "./WriteReview"; // Esto importa el componente WriteReviewModal desde otro archivo
     import AuthPage from './Auth'; // Esto importa el componente AuthPage
     import axios from 'axios'; // el axios es una librería para hacer solicitudes HTTP desde el navegador
-    import { axiosWithRetry } from '../services/retryAxios';
 
     interface User { // esta es lainterfaz que define la forma de un objeto de usuario
         id: string;
@@ -95,12 +94,10 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                 if (!user) { setNotifications([]); return; }
                 try {
                     const token = localStorage.getItem('token');
-                                        const res = await axiosWithRetry({
-                                            url: `${API_URL}/notifications?unread=false&limit=10`,
-                                            method: 'get',
-                                            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-                                            timeout: 6000
-                                        });
+                    const res = await axios.get(`${API_URL}/notifications?unread=false&limit=10`, {
+                        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                        timeout: 6000
+                    });
                     const list = res.data?.data?.notifications ?? [];
                     if (Array.isArray(list)) setNotifications(list);
                 } catch (e) {
@@ -117,24 +114,14 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
         const markRead = async (id: string) => {
             try {
                 const token = localStorage.getItem('token');
-                                await axiosWithRetry({
-                                    url: `${API_URL}/notifications/${id}/read`,
-                                    method: 'post',
-                                    data: {},
-                                    headers: token ? { Authorization: `Bearer ${token}` } : undefined
-                                });
+                await axios.post(`${API_URL}/notifications/${id}/read`, {}, { headers: token ? { Authorization: `Bearer ${token}` } : undefined });
                 setNotifications(prev => prev.map(n=> n._id===id ? { ...n, readAt: new Date().toISOString() } : n));
             } catch {}
         };
         const markAllRead = async () => {
             try {
                 const token = localStorage.getItem('token');
-                                await axiosWithRetry({
-                                    url: `${API_URL}/notifications/mark-all-read`,
-                                    method: 'post',
-                                    data: {},
-                                    headers: token ? { Authorization: `Bearer ${token}` } : undefined
-                                });
+                await axios.post(`${API_URL}/notifications/mark-all-read`, {}, { headers: token ? { Authorization: `Bearer ${token}` } : undefined });
                 setNotifications(prev => prev.map(n=> ({ ...n, readAt: new Date().toISOString() })));
             } catch {}
         };
@@ -162,11 +149,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
         useEffect(() => {
             const silentRefresh = async () => {
                 try {
-                                        const res = await axiosWithRetry({
-                                            url: `${API_URL}/companies`,
-                                            method: 'get',
-                                            timeout: 6000
-                                        });
+                    const res = await axios.get(`${API_URL}/companies`, { timeout: 6000 });
                     const list = res.data?.data?.companies ?? res.data?.companies ?? [];
                     if (Array.isArray(list) && list.length > 0) {
                         setCompanies(list);
@@ -214,11 +197,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                     try {
                         const url = `${API_URL}/companies`;
                         console.log('[Home] Fetch companies attempt', attempt + 1, url);
-                                                const response = await axiosWithRetry({
-                                                    url,
-                                                    method: 'get',
-                                                    timeout: 8000
-                                                });
+                        const response = await axios.get(url, { timeout: 8000 });
                         const list = response.data?.data?.companies ?? response.data?.companies ?? [];
                         if (Array.isArray(list)) {
                             setCompanies(list);
@@ -385,10 +364,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                     const selection = [...companies]
                         .sort((a,b)=> (b.totalReviews||0)-(a.totalReviews||0))
                         .slice(0,5);
-                                        const requests = selection.map(c => axiosWithRetry({
-                                            url: `${API_URL}/companies/${c.slug}`,
-                                            method: 'get'
-                                        }));
+                    const requests = selection.map(c => axios.get(`${API_URL}/companies/${c.slug}`));
                     const results = await Promise.allSettled(requests);
                     const aggregated: RecentReview[] = [];
                     results.forEach((r, idx) => {
