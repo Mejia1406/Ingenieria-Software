@@ -63,6 +63,17 @@ export const createReview = async (req: Request, res: Response) => {
       }
     });
 
+    // Recalcular promedio y cantidad de reseñas de la empresa
+    if (company) {
+      const approvedReviews = await Review.find({ company, moderationStatus: 'approved', isVisible: true });
+      const totalReviews = approvedReviews.length;
+      const overallRating = totalReviews > 0 ? (approvedReviews.reduce((sum, r) => sum + (r.overallRating || 0), 0) / totalReviews) : 0;
+      await Company.findByIdAndUpdate(company, {
+        totalReviews,
+        overallRating: Math.round(overallRating * 100) / 100 // redondear a 2 decimales
+      });
+    }
+
     res.status(201).json({
       success: true,
       data: review,
