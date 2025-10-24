@@ -6,9 +6,10 @@ import {
   getMyReviews,
   deleteReview,
   voteReview,
-  reportReview
+  reportReview,
+  getRecentReviews,
+  respondToReview
 } from '../controllers/reviewController';
-import { respondToReview } from '../controllers/reviewController';
 import { authenticate } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 
@@ -27,6 +28,8 @@ router.post(
   validateRequest,
   createReview
 );
+// Obtener reseñas recientes aprobadas (de cualquier empresa)
+router.get('/recent', validateRequest, getRecentReviews);
 
 // Obtener reviews de una empresa
 router.get(

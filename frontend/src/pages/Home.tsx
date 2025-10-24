@@ -353,43 +353,15 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
             return () => { if (reviewSlideRef.current) window.clearInterval(reviewSlideRef.current); };
         }, [reviewSlides]);
 
-        // Fetch recent reviews after companies load
+        // Fetch recent reviews from efficient backend endpoint
         useEffect(() => {
             const fetchRecent = async () => {
-                if (loading || companies.length === 0) return; // wait until companies loaded
                 setLoadingReviews(true);
                 setReviewsError(null);
                 try {
-                    // We'll pull recent reviews from top 5 companies for variety
-                    const selection = [...companies]
-                        .sort((a,b)=> (b.totalReviews||0)-(a.totalReviews||0))
-                        .slice(0,5);
-                    const requests = selection.map(c => axios.get(`${API_URL}/companies/${c.slug}`));
-                    const results = await Promise.allSettled(requests);
-                    const aggregated: RecentReview[] = [];
-                    results.forEach((r, idx) => {
-                        if (r.status === 'fulfilled') {
-                            const data = r.value.data?.data;
-                            if (data?.recentReviews && Array.isArray(data.recentReviews)) {
-                                data.recentReviews.forEach((rev: any) => {
-                                    aggregated.push({
-                                        _id: rev._id,
-                                        title: rev.title,
-                                        overallRating: rev.overallRating,
-                                        jobTitle: rev.jobTitle,
-                                        reviewType: rev.reviewType,
-                                        createdAt: rev.createdAt,
-                                        companySlug: selection[idx].slug,
-                                        companyName: selection[idx].name,
-                                        author: rev.author
-                                    });
-                                });
-                            }
-                        }
-                    });
-                    // Sort by newest date
-                    aggregated.sort((a,b)=> new Date(b.createdAt||0).getTime() - new Date(a.createdAt||0).getTime());
-                    setRecentReviews(aggregated.slice(0,6));
+                    const response = await axios.get(`${API_URL}/reviews/recent?limit=6`, { timeout: 8000 });
+                    const list = response.data?.data ?? [];
+                    setRecentReviews(list);
                 } catch (err:any) {
                     console.error('Error fetching recent reviews', err);
                     setReviewsError('No se pudieron cargar las reseñas.');
@@ -398,7 +370,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                 }
             };
             fetchRecent();
-        }, [loading, companies, API_URL]);
+        }, [API_URL]);
 
         const timeAgo = (iso?: string) => {
             if (!iso) return '';

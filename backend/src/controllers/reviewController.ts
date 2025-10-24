@@ -150,6 +150,42 @@ export const deleteReview = async (req: Request, res: Response) => {
   }
 };
 
+// Obtener reseñas recientes aprobadas (de cualquier empresa)
+export const getRecentReviews = async (req: Request, res: Response) => {
+  try {
+    const limit = Number(req.query.limit) || 6;
+    const reviews = await Review.find({ isVisible: true, moderationStatus: 'approved' })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate('author', 'firstName lastName userType isVerified')
+      .populate('company', 'name slug');
+
+    // Formatear para frontend
+    const formatted = reviews.map(r => ({
+      _id: r._id,
+      title: r.title,
+      overallRating: r.overallRating,
+      jobTitle: r.jobTitle,
+      reviewType: r.reviewType,
+      createdAt: r.createdAt,
+        companySlug: r.company && typeof r.company === 'object' && 'slug' in r.company ? r.company.slug : '',
+        companyName: r.company && typeof r.company === 'object' && 'name' in r.company ? r.company.name : '',
+        author: (() => {
+          const a = r.author as any;
+          return a && typeof a === 'object' && a.firstName ? {
+            firstName: a.firstName,
+            lastName: a.lastName,
+            userType: a.userType,
+            isVerified: a.isVerified
+          } : undefined;
+        })()
+    }));
+    res.status(200).json({ success: true, data: formatted });
+  } catch (err:any) {
+    res.status(500).json({ success:false, error: err.message });
+  }
+};
+
 // Votar utilidad (Útil / No útil) - HU07
 export const voteReview = async (req: AuthRequest, res: Response) => {
   try {
