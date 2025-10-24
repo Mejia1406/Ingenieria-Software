@@ -1,5 +1,4 @@
-const API_BASE = 'https://ingenieria-software-1-ayxk.onrender.com/api/recruiters';
-
+const API_BASE = 'https://ingenieria-software-production.up.railway.app/api/recruiters';
 function authHeaders() {
   const token = localStorage.getItem('token');
   return {

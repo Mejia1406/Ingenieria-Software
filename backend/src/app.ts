@@ -23,7 +23,6 @@ dotenv.config();
 
 const app = express();
 app.set('trust proxy', 1);
-app.set('trust proxy', 1);
 // Conexión a BD y ensureAdmin se manejan en server.ts para evitar dobles conexiones
 
 // Rate limiting

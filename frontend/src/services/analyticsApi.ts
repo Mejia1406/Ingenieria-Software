@@ -6,7 +6,7 @@ export interface FetchAnalyticsParams {
 }
 
 export async function fetchRecruiterAnalytics({ range, token, isAdmin, adminCompanyId }: FetchAnalyticsParams) {
-  const baseUrl = process.env.REACT_APP_API_URL || 'https://ingenieria-software-1-ayxk.onrender.com';
+  const baseUrl = process.env.REACT_APP_API_URL || 'https://ingenieria-software-production.up.railway.app';
   const query = new URLSearchParams({ range });
   if (isAdmin && adminCompanyId) query.set('companyId', adminCompanyId);
   const res = await fetch(`${baseUrl}/api/analytics/recruiter?${query.toString()}`, {
