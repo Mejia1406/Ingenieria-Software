@@ -386,6 +386,8 @@ const WriteReviewModal: React.FC<WriteReviewModalProps> = ({ isOpen, onClose, us
                                 {loadingCompanies ? (
                                     <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
                                         Cargando empresas...
+                                        <br />
+                                        <span className="text-xs text-[#e67e22]">Si el servidor está dormido, puede tardar hasta 1 minuto en reconectar. Por favor espera...</span>
                                     </div>
                                 ) : (
                                     <select

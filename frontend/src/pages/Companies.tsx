@@ -82,25 +82,33 @@ const Companies: React.FC = () => {
     };
   }, []);
 
-  // Load companies from database
+  // Load companies from database with limited retry logic
   useEffect(() => {
-    const fetchCompanies = async () => {
+    let isMounted = true;
+    const maxRetries = 5;
+    const delayMs = 10000; // 10 seconds
+    const fetchCompaniesWithRetry = async (retries = 0) => {
       setLoading(true);
       try {
         const response = await axios.get(`${API_URL}/companies`);
         if (response.data.success && response.data.data.companies) {
-          setCompanies(response.data.data.companies);
+          if (isMounted) setCompanies(response.data.data.companies);
+          if (isMounted) setLoading(false);
+          return;
         }
       } catch (error) {
-        console.error('Error fetching companies:', error);
-        // Use fallback data if API fails
-        
-      } finally {
-        setLoading(false);
+        if (isMounted) {
+          if (retries < maxRetries) {
+            setTimeout(() => fetchCompaniesWithRetry(retries + 1), delayMs);
+          } else {
+            setLoading(false);
+            console.error('No se pudo conectar con el backend después de varios intentos.', error);
+          }
+        }
       }
     };
-
-    fetchCompanies();
+    fetchCompaniesWithRetry();
+    return () => { isMounted = false; };
   }, [API_URL]);
 
   useEffect(() => {
@@ -323,13 +331,15 @@ const Companies: React.FC = () => {
 
             {/* Lista de empresas */}
             {loading && (
-              <div className="p-4 text-center text-[#49739c]">Cargando compañías...</div>
+              <div className="p-4 text-center text-[#49739c]">
+                Cargando compañías...
+                <br />
+                <span className="text-xs text-[#e67e22]">Si el servidor está dormido, puede tardar hasta 1 minuto en reconectar. Por favor espera...</span>
+              </div>
             )}
-            
             {!loading && filteredCompanies.length === 0 && (
               <div className="p-4 text-center text-[#49739c]">No se encontraron compañías.</div>
             )}
-            
             {!loading && filteredCompanies.length > 0 && (
               <AnimatedList
                 items={filteredCompanies}
