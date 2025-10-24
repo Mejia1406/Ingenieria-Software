@@ -76,8 +76,8 @@ const AuthPage: React.FC<AuthProps> = ({ onClose, onSuccess }) => {
         setIsLoading(true);
         
         try {
-            const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-            const fullURL = `http://localhost:5000${endpoint}`;
+            const API_URL = process.env.REACT_APP_API_URL || 'https://ingenieria-software-1-ayxk.onrender.com/api';
+            const fullURL = isLogin ? `${API_URL}/auth/login` : `${API_URL}/auth/register`;
             // prepare payload
             const requestData = isLogin 
                 ? { email: formData.email, password: formData.password }
