@@ -329,14 +329,38 @@ const UserProfile: React.FC = () => {
     }
 
     if (error || !user) {
+        const isNetworkError = error === 'Failed to fetch profile data';
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">Error</h2>
-                    <p className="text-gray-600 mb-6">{error || 'User not found'}</p>
-                    <Link to="/" className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                        Ir a Inicio
-                    </Link>
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+                <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6 text-center">
+                    <div className="flex items-center justify-center mb-4">
+                        <div className="bg-red-50 rounded-full p-3">
+                            <svg className="w-8 h-8 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h2 className="text-lg font-bold text-gray-900 mb-2">No se pudo cargar el perfil</h2>
+                    <p className="text-gray-600 mb-4">
+                        {isNetworkError
+                            ? 'Parece que el servidor no responde. Verifica que el backend esté activo (Render) o revisa tu conexión.'
+                            : (error || 'Usuario no encontrado')
+                        }
+                    </p>
+                    <div className="flex justify-center gap-3">
+                        <button
+                            onClick={async () => { setLoading(true); setError(''); await fetchUserProfile(); }}
+                            className="inline-flex items-center gap-2 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            Reintentar
+                        </button>
+                        <Link to="/" className="inline-flex items-center gap-2 bg-gray-100 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">
+                            Ir a Inicio
+                        </Link>
+                    </div>
+                    {isNetworkError && (
+                        <p className="text-xs text-gray-500 mt-4">URL del API: <code className="text-xs text-gray-700 break-all">{API_URL}</code></p>
+                    )}
                 </div>
             </div>
         );
