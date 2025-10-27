@@ -433,14 +433,10 @@ const UserProfile: React.FC = () => {
                                                     : 'Ubicación no especificada'}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <svg className="w-4 h-4 text-yellow-500" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 .587l3.668 7.431L24 9.748l-6 5.847L19.335 24 12 20.201 4.665 24 6 15.595 0 9.748l8.332-1.73z"/></svg>
-                                            <span>{user.reputation ?? 0} pts</span>
-                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex flex-col items-end gap-2">
-                                    <button onClick={() => setEditBasicInfo(true)} className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-800 px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition">
+                                    <button onClick={() => setEditBasicInfo(true)} className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-2 rounded-lg shadow-md hover:scale-105 transition-transform">
                                         Editar perfil
                                     </button>
                                 </div>
