@@ -393,32 +393,57 @@ const UserProfile: React.FC = () => {
 
             {/* Main Content */}
             <div className="max-w-4xl mx-auto py-8 px-4">
-                {/* Profile Header */}
-                <div className="bg-white rounded-lg shadow-sm border mb-6 overflow-hidden">
-                    <div className="h-32 bg-gradient-to-r from-blue-500 to-purple-600"></div>
-                    <div className="px-6 pb-6">
-                        <div className="flex items-end -mt-16 mb-4">
-                            <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-600">
-                                {user.firstName[0]}{user.lastName[0]}
-                            </div>
-                            <div className="ml-6 pb-4">
-                                <div className="flex items-center gap-3">
-                                    <h1 className="text-2xl font-bold text-gray-900">
-                                        {user.firstName} {user.lastName}
-                                    </h1>
-                                    {user.isVerified && (
-                                        <span className="bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded-full">
-                                            ✓ Verificado
-                                        </span>
+                {/* Profile Header - diseño mejorado */}
+                <div className="relative mb-8">
+                    <div className="rounded-lg overflow-hidden shadow-lg">
+                        <div className="h-40 bg-gradient-to-r from-blue-600 to-purple-600 relative">
+                            {/* subtle decorative circle */}
+                            <svg className="absolute right-6 top-6 opacity-10" width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="60" cy="60" r="60" fill="white" />
+                            </svg>
+                        </div>
+                        <div className="bg-white px-6 pb-6 pt-0">
+                            <div className="-mt-20 flex items-end gap-6">
+                                <div className="relative">
+                                    {user.profilePicture ? (
+                                        <img src={user.profilePicture} alt="Avatar" className="w-36 h-36 rounded-full object-cover border-4 border-white shadow-lg" />
+                                    ) : (
+                                        <div className="w-36 h-36 rounded-full border-4 border-white bg-gradient-to-br from-slate-100 to-slate-200 shadow-lg flex items-center justify-center text-4xl font-bold text-gray-600">
+                                            {user.firstName[0]}{user.lastName[0]}
+                                        </div>
                                     )}
                                 </div>
-                                <p className="text-gray-600 capitalize">{user.userType}</p>
-                                <p className="text-sm text-gray-500">
-                                    {user.location?.city && user.location?.country
-                                        ? `${user.location.city}, ${user.location.country}`
-                                        : 'Location not specified'
-                                    }
-                                </p>
+                                <div className="flex-1 pb-4">
+                                    <div className="flex items-center gap-4">
+                                        <h1 className="text-3xl font-extrabold text-slate-900 leading-tight">{user.firstName} {user.lastName}</h1>
+                                        {user.isVerified && (
+                                            <span className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-full">
+                                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4"/></svg>
+                                                Verificado
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-sm text-gray-500 mt-1 capitalize">{user.userType}</p>
+                                    <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
+                                        <div className="flex items-center gap-2">
+                                            <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 12.414a4 4 0 10-5.657 5.657l4.243 4.243a8 8 0 0011.314-11.314l-4.243 4.243"/></svg>
+                                            <span>
+                                                {user.location?.city && user.location?.country
+                                                    ? `${user.location.city}, ${user.location.country}`
+                                                    : 'Ubicación no especificada'}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <svg className="w-4 h-4 text-yellow-500" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 .587l3.668 7.431L24 9.748l-6 5.847L19.335 24 12 20.201 4.665 24 6 15.595 0 9.748l8.332-1.73z"/></svg>
+                                            <span>{user.reputation ?? 0} pts</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col items-end gap-2">
+                                    <button onClick={() => setEditBasicInfo(true)} className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-800 px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition">
+                                        Editar perfil
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -428,7 +453,7 @@ const UserProfile: React.FC = () => {
                     {/* Left Column */}
                     <div className="lg:col-span-1 space-y-6">
                         {/* Basic Information */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
+                        <div className="bg-white rounded-xl shadow-sm border p-6 hover:shadow-lg transition">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-lg font-semibold">Información Básica</h2>
                                 <button
@@ -461,7 +486,7 @@ const UserProfile: React.FC = () => {
                         </div>
 
                         {/* Location */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
+                        <div className="bg-white rounded-xl shadow-sm border p-6 hover:shadow-lg transition">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-lg font-semibold">Ubicación</h2>
                                 <button
@@ -482,7 +507,7 @@ const UserProfile: React.FC = () => {
                         </div>
 
                         {/* Skills */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
+                        <div className="bg-white rounded-xl shadow-sm border p-6 hover:shadow-lg transition">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-lg font-semibold">Habilidades</h2>
                                 <button
@@ -509,7 +534,7 @@ const UserProfile: React.FC = () => {
                         </div>
 
                         {/* Recruiter Request */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
+                        <div className="bg-white rounded-xl shadow-sm border p-6 hover:shadow-lg transition">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-lg font-semibold">Rol de Reclutador</h2>
                             </div>
@@ -581,7 +606,7 @@ const UserProfile: React.FC = () => {
                     {/* Right Column */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Professional Summary */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
+                        <div className="bg-white rounded-xl shadow-sm border p-6 hover:shadow-lg transition">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-lg font-semibold">Resumen Profesional</h2>
                                 <button
@@ -603,7 +628,7 @@ const UserProfile: React.FC = () => {
                         </div>
 
                         {/* Work Experience */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
+                        <div className="bg-white rounded-xl shadow-sm border p-6 hover:shadow-lg transition">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-lg font-semibold">Experiencia Laboral</h2>
                                 <button
@@ -636,7 +661,7 @@ const UserProfile: React.FC = () => {
                         </div>
 
                         {/* Education */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
+                        <div className="bg-white rounded-xl shadow-sm border p-6 hover:shadow-lg transition">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-lg font-semibold">Educación</h2>
                                 <button
