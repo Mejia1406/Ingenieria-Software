@@ -5,6 +5,7 @@ import axios from "axios";
 import WriteReviewModal from "../pages/WriteReview";
 import AuthPage from './Auth';
 import AnimatedList from '../components/AnimatedList';
+import { number } from "motion";
 
 interface User {
     id: string;
@@ -36,6 +37,10 @@ const Companies: React.FC = () => {
   const [location, setLocation] = useState("All");
   const [size, setSize] = useState("All");
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(20);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalCompanies, setTotalCompanies] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [showAuth, setShowAuth] = useState(false);
   const [showWriteReview, setShowWriteReview] = useState(false);
@@ -90,9 +95,22 @@ const Companies: React.FC = () => {
     const fetchCompaniesWithRetry = async (retries = 0) => {
       setLoading(true);
       try {
+        const params: any = { page, limit};
+        if (search) params.search = search;
+        if (industry && industry !== "All") params.industry = industry;
+        if (location && location !== "All") params.location = location;
+        if (size && size !== "All") params.size = size;
+
         const response = await axios.get(`${API_URL}/companies`);
         if (response.data.success && response.data.data.companies) {
           if (isMounted) setCompanies(response.data.data.companies);
+          if (isMounted) {
+            const pagination = response.data.data.pagination || { page, limit, total: 0, pages: 1 };
+            setPage(pagination.page || page);
+            setLimit(pagination.limit || limit);
+            setTotalCompanies(pagination.total || 0);
+            setTotalPages(pagination.pages || 1);
+          }
           if (isMounted) setLoading(false);
           return;
         }
@@ -109,7 +127,11 @@ const Companies: React.FC = () => {
     };
     fetchCompaniesWithRetry();
     return () => { isMounted = false; };
-  }, [API_URL]);
+  }, [API_URL, page, limit, search, industry, location, size]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, industry, location, size]);
 
   useEffect(() => {
     const params = new URLSearchParams(routerLocation.search);
@@ -372,6 +394,38 @@ const Companies: React.FC = () => {
                 enableArrowNavigation
                 noInternalScroll
               />
+            )}
+
+            {/*Footer / Paginación*/}
+            {!loading && totalPages > 1 && (
+              <div className="px-4 py-4 flex items-center justify-center">
+                <nav className="inline-flex items-center gap-2" aria-label="Paginacion">
+                  <button
+                    onClick={() => setPage(p => Math.max(1, p-1))}
+                    disabled={page <= 1}
+                    className={`px-3 py-1 rounded border ${page <= 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-100'}`}
+                    >Prev</button>
+
+                    {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => i + 1).map(p => (
+                      <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      aria-current={p === page}
+                      className={`px-3 py-1 rounded border ${p === page ? 'bg-blue-600 text-white' : 'bg-white hover:bg-slate-100'}`}
+                      >{p}</button>
+                    ))}
+
+                    {totalPages > 10 && (
+                      <span className="px-2">...</span>
+                    )}
+
+                    <button
+                    onClick={() => setPage(p => Math.min(totalPages, p+1))}
+                    disabled={page >= totalPages}
+                    className={`px-3 py-1 rounded border ${page >= totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-100'}`}
+                    >Next</button>
+                </nav>
+              </div>
             )}
           </div>
         </div>
