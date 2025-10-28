@@ -101,7 +101,7 @@ const Companies: React.FC = () => {
         if (location && location !== "All") params.location = location;
         if (size && size !== "All") params.size = size;
 
-        const response = await axios.get(`${API_URL}/companies`);
+  const response = await axios.get(`${API_URL}/companies`, { params });
         if (response.data.success && response.data.data.companies) {
           if (isMounted) setCompanies(response.data.data.companies);
           if (isMounted) {
