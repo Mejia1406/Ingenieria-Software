@@ -56,26 +56,13 @@
       <meta name="twitter:description" content="Encuentra la empresa ideal para ti. Opiniones, salarios y entrevistas de empleados y candidatos." />
   <meta name="twitter:image" content="https://ingenieria-software-2025.vercel.app/logo192.png" />
     
-    <!-- Tailwind CSS config must be defined BEFORE the CDN script -->
-    <script>
-      tailwind = window.tailwind || {};
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              'inter': ['Inter', 'sans-serif'],
-            }
-          }
-        }
-      };
-    </script>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Google Fonts -->
+    <!-- Preconnect to external domains (DNS prefetch) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Preload critical fonts with display swap to avoid FOIT -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap"></noscript>
     
     <title>TalentTrace - Company Insights</title>
     
