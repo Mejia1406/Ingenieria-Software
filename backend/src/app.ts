@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 
-
+//Prueba
 import authRoutes from './routes/auth';
 import companyRoutes from './routes/companies';
 import experienceRoutes from './routes/experiences';
