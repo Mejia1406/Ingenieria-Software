@@ -16,6 +16,7 @@ import analyticsRoutes from './routes/analytics';
 import notificationRoutes from './routes/notifications';
 import chatbotRoutes from './routes/chatbot';
 import forumRoutes from './routes/forum';
+import blogRoutes from './routes/blog';
 
 
 // Cargar variables de entorno
@@ -66,6 +67,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/recruiters', recruiterRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/blog', blogRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

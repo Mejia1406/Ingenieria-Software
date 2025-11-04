@@ -6,6 +6,7 @@ const navItems = [
   { to: '/admin/reviews', label: 'Moderación' },
   { to: '/admin/companies', label: 'Compañías' },
   { to: '/admin/recruiters', label: 'Reclutadores' },
+  { to: '/admin/blog', label: 'Blog' },
   { to: '/admin/users', label: 'Usuarios' }
 ];
 

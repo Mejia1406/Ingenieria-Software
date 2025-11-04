@@ -1,23 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <!-- Página principal -->
   <url>
-  <loc>https://ingenieria-software-2025.vercel.app/</loc>
-    <changefreq>weekly</changefreq>
+    <loc>https://ingenieria-software-2025.vercel.app/</loc>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <lastmod>2025-11-03</lastmod>
   </url>
+  
+  <!-- Empresas -->
   <url>
-  <loc>https://ingenieria-software-2025.vercel.app/companies</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://ingenieria-software-2025.vercel.app/companies</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2025-11-03</lastmod>
   </url>
+  
+  <!-- Blog - Listado -->
   <url>
-  <loc>https://ingenieria-software-2025.vercel.app/reviews</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://ingenieria-software-2025.vercel.app/blog</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2025-11-03</lastmod>
   </url>
+  
+  <!-- Foro -->
   <url>
-  <loc>https://ingenieria-software-2025.vercel.app/foro</loc>
+    <loc>https://ingenieria-software-2025.vercel.app/foro</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+    <lastmod>2025-11-03</lastmod>
   </url>
+  
+  <!-- Perfil de usuario -->
+  <url>
+    <loc>https://ingenieria-software-2025.vercel.app/profile</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Analytics para reclutadores -->
+  <url>
+    <loc>https://ingenieria-software-2025.vercel.app/recruiter/analytics</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- NOTA: Los artículos individuales del blog y empresas específicas 
+       se deberían agregar dinámicamente desde el backend.
+       Por ahora, este sitemap cubre las páginas estáticas principales.
+       
+       Para un sitemap dinámico completo, considera usar:
+       - Un endpoint en backend que genere el sitemap en tiempo real
+       - O un script de build que consulte la BD y genere sitemap.xml
+  -->
+  
 </urlset>

@@ -8,7 +8,8 @@
     "dev": "nodemon",
     "build": "tsc",
     "build:watch": "tsc -w",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "seed:blog": "ts-node scripts/seedBlogPosts.ts"
   },
   "keywords": [],
   "author": "",

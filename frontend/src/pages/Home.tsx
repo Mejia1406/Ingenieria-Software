@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
     import { Link, useNavigate } from "react-router-dom"; // Esto importa componentes y hooks de react-router-dom para manejar la navegación
     import WriteReviewModal from "./WriteReview"; // Esto importa el componente WriteReviewModal desde otro archivo
     import AuthPage from './Auth'; // Esto importa el componente AuthPage
+    import SEO from '../components/SEO'; // Importar componente SEO
     import axios from 'axios'; // el axios es una librería para hacer solicitudes HTTP desde el navegador
 
     interface User { // esta es lainterfaz que define la forma de un objeto de usuario
@@ -420,6 +421,12 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
         };
 
         return (
+        <>
+            <SEO
+                title="TalentTrace - Encuentra la Empresa Ideal para Ti"
+                description="Descubre reviews y experiencias laborales auténticas de empleados y candidatos. Explora salarios, entrevistas y cultura empresarial antes de aplicar."
+                keywords="reviews de empresas, experiencias laborales, salarios, entrevistas de trabajo, cultura empresarial, empleos, reclutamiento"
+            />
         <div className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden" style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}>
             <div className="layout-container flex h-full grow flex-col">
                 {/* Header */}
@@ -438,6 +445,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                             <a className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-2" href="#">Inicio</a>
                             <a className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-3" href="/foro">Foro</a>
                             <Link className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-4" to="/companies">Empresas</Link>
+                            <Link className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-5" to="/blog">Blog</Link>
                         </nav>
                     </div>
                     <div className="flex flex-1 justify-end gap-8">
@@ -874,6 +882,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                 />
             )}
         </div>
+        </>
     );
 };
 
