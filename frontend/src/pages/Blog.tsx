@@ -111,24 +111,12 @@ const Blog: React.FC = () => {
     }
   };
 
-  // Construct canonical URL based on current filters
-  const buildCanonicalUrl = () => {
-    const base = 'https://ingenieria-software-2025.vercel.app/blog';
-    const params = new URLSearchParams();
-    if (currentCategory) params.set('category', currentCategory);
-    if (currentSearch) params.set('search', currentSearch);
-    if (currentPage > 1) params.set('page', currentPage.toString());
-    const queryString = params.toString();
-    return queryString ? `${base}?${queryString}` : base;
-  };
-
   return (
     <>
       <SEO
         title="Blog - Consejos y Tendencias Laborales"
         description="Descubre consejos de carrera, insights de empresas, tips para entrevistas y tendencias salariales en el mercado laboral."
         keywords="blog laboral, consejos de carrera, entrevistas de trabajo, cultura empresarial, salarios, empleo"
-        canonicalUrl={buildCanonicalUrl()}
         schemaData={schemaData}
       />
 
@@ -138,11 +126,8 @@ const Blog: React.FC = () => {
           <div className="container mx-auto px-4 py-16">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold mb-4">Blog de TalentTrace</h1>
-              <h2 className="text-xl md:text-2xl text-indigo-100 mb-2">
+              <p className="text-xl text-indigo-100">
                 Consejos, insights y tendencias del mercado laboral
-              </h2>
-              <p className="text-indigo-200">
-                Aprende estrategias para impulsar tu carrera profesional
               </p>
             </div>
           </div>

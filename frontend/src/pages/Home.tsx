@@ -423,10 +423,9 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
         return (
         <>
             <SEO
-                title="Encuentra la Empresa Ideal para Ti"
+                title="TalentTrace - Encuentra la Empresa Ideal para Ti"
                 description="Descubre reviews y experiencias laborales auténticas de empleados y candidatos. Explora salarios, entrevistas y cultura empresarial antes de aplicar."
                 keywords="reviews de empresas, experiencias laborales, salarios, entrevistas de trabajo, cultura empresarial, empleos, reclutamiento"
-                canonicalUrl="https://ingenieria-software-2025.vercel.app/"
             />
         <div className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden" style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}>
             <div className="layout-container flex h-full grow flex-col">
@@ -647,9 +646,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                                         <section className="hero-grid anim-scale-in">
                                             <div className="hero-content anim-fade-up anim-delay-2">
                                                 <h1 className="hero-title">Descubre experiencias reales de empresas</h1>
-                                                <h2 className="text-lg md:text-xl text-slate-600 mb-6 leading-relaxed">
-                                                    Encuentra transparencia sobre cultura, salarios, entrevistas y crecimiento profesional para tomar mejores decisiones en tu carrera.
-                                                </h2>
+                                                <p className="hero-sub">Encuentra transparencia sobre cultura, salarios, entrevistas y crecimiento profesional para tomar mejores decisiones en tu carrera.</p>
                                                 <form onSubmit={handleSearch} className="hero-search anim-fade-up anim-delay-3" role="search" aria-label="Buscar empresas">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
                                                     <input placeholder="Buscar empresas..." value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} aria-label="Texto de búsqueda" />
@@ -855,34 +852,6 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                                             <div className="flex gap-4 justify-center flex-wrap">
                                                 <button onClick={handleWriteReview} className="bg-white text-indigo-700 px-7 py-3 rounded-full font-semibold shadow-sm hover:shadow transition-all hover:bg-indigo-50 border border-white/70 shimmer">Escribir Experiencia</button>
                                                 <button onClick={handleWriteReview} className="px-7 py-3 rounded-full font-semibold border border-white/60 text-white/90 hover:text-white hover:bg-white/10 backdrop-blur transition-colors shadow-sm">Compartir Opinión</button>
-                                            </div>
-                                        </section>
-                                        
-                                        {/* Internal Links Section for SEO */}
-                                        <section className="bg-gradient-to-br from-slate-50 to-white rounded-2xl p-8 shadow-sm border border-slate-100">
-                                            <h2 className="text-2xl font-bold text-slate-900 mb-6 text-center">Explora más contenido</h2>
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                <Link to="/companies" className="group p-6 rounded-xl bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 transition-all shadow-sm hover:shadow-md">
-                                                    <svg className="w-10 h-10 text-indigo-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                    </svg>
-                                                    <h3 className="font-semibold text-slate-900 mb-2 group-hover:text-indigo-700">Ver todas las empresas</h3>
-                                                    <p className="text-sm text-slate-600">Explora reviews de empresas y encuentra tu próximo empleo</p>
-                                                </Link>
-                                                <Link to="/blog" className="group p-6 rounded-xl bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 transition-all shadow-sm hover:shadow-md">
-                                                    <svg className="w-10 h-10 text-indigo-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                                    </svg>
-                                                    <h3 className="font-semibold text-slate-900 mb-2 group-hover:text-indigo-700">Lee nuestro blog</h3>
-                                                    <p className="text-sm text-slate-600">Consejos de carrera, tendencias del mercado laboral y más</p>
-                                                </Link>
-                                                <Link to="/foro" className="group p-6 rounded-xl bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 transition-all shadow-sm hover:shadow-md">
-                                                    <svg className="w-10 h-10 text-indigo-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-                                                    </svg>
-                                                    <h3 className="font-semibold text-slate-900 mb-2 group-hover:text-indigo-700">Únete al foro</h3>
-                                                    <p className="text-sm text-slate-600">Comparte y discute experiencias con otros profesionales</p>
-                                                </Link>
                                             </div>
                                         </section>
                   
