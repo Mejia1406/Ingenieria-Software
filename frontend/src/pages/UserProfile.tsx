@@ -1235,7 +1235,14 @@ const UserProfile: React.FC = () => {
                 <WriteReviewModal
                     isOpen={showWriteReview}
                     onClose={() => setShowWriteReview(false)}
-                    user={user}
+                    user={{
+                        id: user._id,
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        userType: user.userType,
+                        isVerified: user.isVerified
+                    }}
                 />
             )}
         </div>
