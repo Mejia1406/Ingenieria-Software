@@ -16,6 +16,9 @@
       <meta name="keywords" content="empresas, reviews, salarios, entrevistas, empleo, talento, reclutadores, foro, opiniones" />
       <meta name="author" content="TalentTrace" />
       <meta name="robots" content="index, follow" />
+      
+      <!-- Canonical URL (base, se sobrescribe por React) -->
+      <link rel="canonical" href="https://ingenieria-software-2025.vercel.app/" />
 
     <!-- GEO Meta Tags -->
     <meta name="geo.region" content="CO-ANT" />
@@ -73,8 +76,17 @@
       <h1>TalentTrace — Encuentra la empresa ideal para ti</h1>
       You need to enable JavaScript to run this app.
     </noscript>
-    <!-- Accessible fallback H1 to aid non-JS crawlers (will be ignored visually) -->
-    <h1 style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">TalentTrace — Reviews de empresas, salarios y entrevistas</h1>
+    <!-- Accessible fallback content to aid non-JS crawlers -->
+    <div style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">
+      <h1>TalentTrace — Reviews de empresas, salarios y entrevistas</h1>
+      <h2>Descubre experiencias auténticas de empleados y candidatos</h2>
+      <nav>
+        <a href="/">Inicio</a>
+        <a href="/companies">Empresas</a>
+        <a href="/blog">Blog</a>
+        <a href="/foro">Foro</a>
+      </nav>
+    </div>
     <div id="root"></div>
   </body>
 </html>

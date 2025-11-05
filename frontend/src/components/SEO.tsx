@@ -31,7 +31,18 @@ const SEO: React.FC<SEOProps> = ({
 }) => {
   const siteUrl = 'https://ingenieria-software-2025.vercel.app';
   const fullTitle = `${title} | TalentTrace`;
-  const fullCanonicalUrl = canonicalUrl || window.location.href;
+  
+  // Normalizar canonical URL: remover www, trailing slashes, y usar protocolo https
+  const normalizeUrl = (url: string) => {
+    return url
+      .replace(/^http:/, 'https:')
+      .replace(/^https:\/\/www\./, 'https://')
+      .replace(/\/$/, ''); // Remove trailing slash
+  };
+  
+  const fullCanonicalUrl = canonicalUrl 
+    ? normalizeUrl(canonicalUrl)
+    : normalizeUrl(siteUrl + window.location.pathname);
 
   React.useEffect(() => {
     // Update document title

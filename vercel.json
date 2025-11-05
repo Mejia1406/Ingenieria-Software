@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "https://www.ingenieria-software-2025.vercel.app/:path*",
+      "destination": "https://ingenieria-software-2025.vercel.app/:path*",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/static/(.*)",
