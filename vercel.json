@@ -1,4 +1,5 @@
 {
+  "regions": ["iad1"],
   "redirects": [
     {
       "source": "https://www.ingenieria-software-2025.vercel.app/:path*",
