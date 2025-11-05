@@ -152,6 +152,7 @@ const ForoHeader: React.FC<ForoHeaderProps> = ({ user, onWriteReview }) => {
           >
             <span className="pr-0">Escribir Experiencia</span>
           </button>
+          {/* Perfil de usuario */}
           {user ? (
             <div className="flex items-center gap-3">
               <div className="relative" ref={dropdownRef}>
@@ -177,8 +178,6 @@ const ForoHeader: React.FC<ForoHeaderProps> = ({ user, onWriteReview }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-
-                {/* Dropdown Menu */}
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 origin-top-right animate-[scaleIn_120ms_ease-out] rounded-xl border border-slate-200/70 bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-200/50 ring-1 ring-black/5 p-2 z-50">
                     <div className="px-3 pt-2 pb-3 border-b border-slate-200/70">
