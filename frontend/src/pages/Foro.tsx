@@ -325,6 +325,7 @@ const Foro: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white-50 pb-16">
       <ForoHeader user={user} onWriteReview={handleWriteReview} />
       <main className="max-w-2xl mx-auto py-10 px-4">
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-6">Foro de TalentTrace</h1>
         <section className="mb-10">
           <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-6 flex flex-col gap-3">
             <label className="font-semibold text-slate-800 text-lg mb-1">Publica una pregunta</label>
@@ -358,7 +359,7 @@ const Foro: React.FC = () => {
               questions.map(q => (
                 <div key={q._id} className="border rounded-xl p-5 bg-white shadow flex flex-col gap-2">
                   <div className="flex items-center gap-3 mb-1">
-                    <span className="inline-block w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 text-white font-bold flex items-center justify-center text-xl shadow">
+                    <span className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 text-white font-bold flex items-center justify-center text-xl shadow">
                       {q.author && q.author.firstName ? q.author.firstName[0] : 'A'}
                     </span>
                     <div className="flex flex-col">
@@ -425,7 +426,7 @@ const AnswerSection: React.FC<{ question: ForumQuestion; onAnswer: (questionId: 
         ) : (
           question.answers.map((a, idx) => (
             <div key={idx} className="border rounded-lg p-3 bg-white text-slate-700 flex gap-3 items-center shadow-sm">
-              <span className="inline-block w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white font-bold flex items-center justify-center">
+              <span className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white font-bold flex items-center justify-center">
                 {a.author && a.author.firstName ? a.author.firstName[0] : 'A'}
               </span>
               <div className="flex flex-col">

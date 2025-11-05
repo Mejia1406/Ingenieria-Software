@@ -349,7 +349,7 @@ const Companies: React.FC = () => {
               </select>
             </div>
 
-            <h2 className="text-[#0d141c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Compañías</h2>
+            <h1 className="text-[#0d141c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Compañías</h1>
 
             {/* Lista de empresas */}
             {loading && (
