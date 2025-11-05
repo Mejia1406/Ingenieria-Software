@@ -117,13 +117,18 @@ const BlogPost: React.FC = () => {
     "@graph": [articleSchema, breadcrumbSchema]
   };
 
+  // Compute a safe canonical URL: prefer self URL unless canonicalUrl explicitly matches this post
+  const selfCanonical = `https://ingenieria-software-2025.vercel.app/blog/${post.slug}`;
+  const provided = post.canonicalUrl?.trim();
+  const useProvided = !!provided && /https?:\/\//i.test(provided) && provided.includes(`/blog/${post.slug}`);
+
   return (
     <>
       <SEO
         title={post.metaTitle || post.title}
         description={post.metaDescription || post.excerpt}
         keywords={post.metaKeywords?.join(', ') || post.tags.join(', ')}
-        canonicalUrl={post.canonicalUrl || `https://ingenieria-software-2025.vercel.app/blog/${post.slug}`}
+        canonicalUrl={useProvided ? provided : selfCanonical}
         ogImage={post.featuredImage}
         ogType="article"
         articlePublishedTime={post.publishedAt || post.createdAt}
