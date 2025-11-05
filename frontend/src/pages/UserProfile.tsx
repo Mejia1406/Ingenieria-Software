@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
+import WriteReviewModal from './WriteReview';
 
 // Holaaaaa, oe esto es para definir el tipo de usuario, pues lo que se va a recibir
 interface User {
@@ -88,6 +89,12 @@ const UserProfile: React.FC = () => {
     const navigate = useNavigate();
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    
+    // Estados para el header (igual al Home)
+    const [searchQuery, setSearchQuery] = useState('');
+    const [notifOpen, setNotifOpen] = useState(false);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [showWriteReview, setShowWriteReview] = useState(false);
 
     // Todo esto es lo que hace que las ventanas esten abiertas o no, false no y true si
     const [editBasicInfo, setEditBasicInfo] = useState(false);
@@ -174,6 +181,23 @@ const UserProfile: React.FC = () => {
     useEffect(() => {
         fetchUserProfile();
     }, []);
+
+    // useEffect para cargar notificaciones
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            if (!user) { setNotifications([]); return; }
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/notifications?unread=false&limit=10`, {
+                    headers: token ? { Authorization: `Bearer ${token}` } : undefined
+                });
+                const data = await res.json();
+                const list = data?.data?.notifications ?? [];
+                if (Array.isArray(list)) setNotifications(list);
+            } catch {}
+        };
+        fetchNotifications();
+    }, [user, notifOpen]);
 
     // useEffect para cerrar dropdown al hacer click fuera
     useEffect(() => {
@@ -263,6 +287,25 @@ const UserProfile: React.FC = () => {
         setIsDropdownOpen(false);
         navigate('/');
     };
+
+    // Handler para el buscador
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/companies?search=${encodeURIComponent(searchQuery.trim())}`);
+        }
+    };
+
+    // Handler para escribir experiencia
+    const handleWriteReview = () => {
+        if (user) {
+            setShowWriteReview(true);
+        } else {
+            navigate('/auth');
+        }
+    };
+
+    const unreadCount = notifications.filter(n => !n.readAt).length;
 
     // Esto es que cuando se hace un cambio se envia al servidor y se actualiza
     const updateProfile = async (updates: any) => {
@@ -417,14 +460,86 @@ const UserProfile: React.FC = () => {
                         </div>
                         <h1 className="text-slate-900 text-xl font-extrabold leading-tight tracking-[-0.02em]">TalentTrace</h1>
                     </div>
-                    <nav className="hidden md:flex items-center gap-6 xl:gap-8 text-sm font-medium">
-                        <Link to="/" className="text-slate-600 hover:text-slate-900 transition-colors">Inicio</Link>
-                        <Link to="/foro" className="text-slate-600 hover:text-slate-900 transition-colors">Foro</Link>
-                        <Link to="/companies" className="text-slate-600 hover:text-slate-900 transition-colors">Empresas</Link>
+                    <nav className="hidden md:flex items-center gap-6 xl:gap-8 text-sm font-medium anim-fade-in anim-delay-2">
+                        <Link to="/" className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-2">Inicio</Link>
+                        <Link to="/foro" className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-3">Foro</Link>
+                        <Link to="/companies" className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-4">Empresas</Link>
+                        <Link to="/blog" className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-5">Blog</Link>
                     </nav>
                 </div>
                 <div className="flex flex-1 justify-end gap-8">
+                    <form onSubmit={handleSearch} className="hidden md:block" role="search" aria-label="Buscar empresas">
+                        <div className="flex items-center w-[350px] max-w-[30vw] h-12 rounded-full bg-white/90 backdrop-blur border border-slate-200 shadow-sm px-3 pr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-slate-400 mr-2" fill="currentColor" viewBox="0 0 256 256" aria-hidden>
+                                <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z" />
+                            </svg>
+                            <input
+                                placeholder="Buscar empresas..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="flex-1 bg-transparent border-0 outline-none focus:ring-0 text-slate-900 placeholder:text-slate-400 text-sm md:text-base px-1"
+                                aria-label="Texto de búsqueda"
+                            />
+                            <button
+                                type="submit"
+                                className="ml-2 inline-flex items-center gap-1.1 h-9 px-4 rounded-full text-white text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+                            >
+                                Buscar
+                                <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M5 12h14"/>
+                                    <path d="m12 5 7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </form>
+                    
                     <div className="flex gap-2 items-center">
+                        {/* Campana de notificaciones */}
+                        {user && (
+                            <div className="relative">
+                                <button
+                                    onClick={() => setNotifOpen(v => !v)}
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/60 backdrop-blur border border-slate-200 hover:shadow-sm"
+                                    aria-label="Notificaciones"
+                                >
+                                    <svg className="w-5 h-5 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                                    {unreadCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center shadow">{unreadCount}</span>
+                                    )}
+                                </button>
+                                {notifOpen && (
+                                    <div className="absolute right-0 mt-2 w-80 max-w-[90vw] rounded-xl border border-slate-200 bg-white/95 backdrop-blur shadow-lg p-2 z-50">
+                                        <div className="flex items-center justify-between px-2 py-1">
+                                            <span className="text-sm font-semibold text-slate-800">Notificaciones</span>
+                                        </div>
+                                        <div className="max-h-80 overflow-auto divide-y divide-slate-100" role="list">
+                                            {notifications.length === 0 ? (
+                                                <div className="px-3 py-4 text-sm text-slate-500">No tienes notificaciones</div>
+                                            ) : notifications.map(n => (
+                                                <div key={n._id} role="listitem" className={`px-3 py-3 ${!n.readAt ? 'bg-indigo-50/40' : 'bg-white'} hover:bg-slate-50 transition-colors`}>
+                                                    <div className="flex items-start gap-3">
+                                                        <div className={`mt-0.5 w-8 h-8 shrink-0 rounded-full flex items-center justify-center ${!n.readAt ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`} aria-hidden>
+                                                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-slate-800 text-[13px] leading-snug">{n.message}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        {/* Botón destacado para escribir experiencia */}
+                        <button
+                            onClick={handleWriteReview}
+                            className="group hidden md:inline-flex items-center gap-2 rounded-full border border-slate-200 bg-blue/70 px-5 h-10 text-sm font-semibold text-slate-700 shadow-sm hover:border-blue-400/70 hover:text-blue-700 hover:shadow-md active:shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 backdrop-blur"
+                            aria-label="Escribir experiencia"
+                        >
+                            <span className="pr-0">Escribir Experiencia</span>
+                        </button>
                         {user ? (
                             <div className="flex items-center gap-3">
                                 <div className="relative" ref={dropdownRef}>
@@ -1114,6 +1229,15 @@ const UserProfile: React.FC = () => {
                     </div>
                 </div>
             </EditModal>
+
+            {/* Write Review Modal */}
+            {showWriteReview && user && (
+                <WriteReviewModal
+                    isOpen={showWriteReview}
+                    onClose={() => setShowWriteReview(false)}
+                    user={user}
+                />
+            )}
         </div>
     );
 };
