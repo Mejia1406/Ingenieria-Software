@@ -68,9 +68,14 @@ const RecruiterAnalytics: React.FC = () => {
     return undefined;
   }, [user]);
 
-  const fetchAnalytics = async (silent = false) => {
-    if (!user) return;
-    if (user.userType === 'recruiter' && !companyIdForRecruiter) {
+  const fetchAnalytics = React.useCallback(async (silent = false) => {
+    // read fresh user/token values inside callback
+    const userRawInner = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+    let userInner: any = null;
+    try { if (userRawInner) userInner = JSON.parse(userRawInner); } catch {}
+    const companyIdInner = userInner ? (userInner.recruiterInfo?.companyId) : undefined;
+    if (!userInner) return;
+    if (userInner.userType === 'recruiter' && !companyIdInner) {
       setError('Tu cuenta de recruiter aún no está asociada a una empresa.');
       return;
     }
@@ -81,8 +86,8 @@ const RecruiterAnalytics: React.FC = () => {
       const json: AnalyticsResponse = await fetchRecruiterAnalytics({
         range,
         token,
-        isAdmin: user.userType === 'admin',
-        adminCompanyId: user.userType === 'admin' ? user.recruiterInfo?.companyId : undefined
+        isAdmin: userInner.userType === 'admin',
+        adminCompanyId: userInner.userType === 'admin' ? userInner.recruiterInfo?.companyId : undefined
       });
       setData(json);
       setLastUpdated(new Date().toLocaleTimeString());
@@ -93,9 +98,9 @@ const RecruiterAnalytics: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [range]);
 
-  useEffect(() => { fetchAnalytics(true); /* eslint-disable-next-line */ }, [range]);
+  useEffect(() => { fetchAnalytics(true); }, [fetchAnalytics]);
 
   const refresh = () => fetchAnalytics();
 

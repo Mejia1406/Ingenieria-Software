@@ -14,23 +14,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
         isVerified: boolean;
     }
 
-    interface ReviewFormData { // la interfaz que define la forma de los datos del formulario de reseña
-    companyName: string;
-    jobTitle: string;
-    outcome: string;
-    overallRating: number;
-    interviewDifficulty: number;
-    processTransparency: number;
-    reviewText: string;
-    pros: string;
-    cons: string;
-    advice: string;
-    recommendToFriend: boolean;
-    employmentStatus: 'current' | 'former' | 'candidate';
-    department: string;
-    location: string;
-    salary: string;
-    }
+    // ReviewFormData removed from Home as it's defined and used in WriteReview.tsx
 
     interface Company { // la interfaz que define la forma de un objeto de empresa
   _id: string;
@@ -307,7 +291,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                 .slice(0, 3);
         }, [companies]);
 
-        const formatReviews = (n: number) => `${n} reseña${n === 1 ? '' : 's'}`;
+    // formatReviews removed (unused here)
 
         // Recent reviews state
         interface RecentReview {
@@ -442,7 +426,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Esto lo que hace 
                             <h1 className="text-slate-900 text-xl font-extrabold leading-tight tracking-[-0.02em]">TalentTrace</h1>
                         </div>
                         <nav className="hidden md:flex items-center gap-6 xl:gap-8 text-sm font-medium anim-fade-in anim-delay-2">
-                            <a className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-2" href="#">Inicio</a>
+                            <Link className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-2" to="/">Inicio</Link>
                             <a className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-3" href="/foro">Foro</a>
                             <Link className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-4" to="/companies">Empresas</Link>
                             <Link className="text-slate-600 hover:text-slate-900 transition-colors anim-fade-up anim-delay-5" to="/blog">Blog</Link>

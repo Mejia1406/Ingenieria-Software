@@ -8,11 +8,7 @@ const AdminBlog: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'published' | 'draft' | 'archived'>('all');
 
-  useEffect(() => {
-    fetchPosts();
-  }, [filter]);
-
-  const fetchPosts = async () => {
+  const fetchPosts = React.useCallback(async () => {
     try {
       setLoading(true);
       const response = await getAllBlogPosts({
@@ -26,7 +22,9 @@ const AdminBlog: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
   const handleDelete = async (id: string, title: string) => {
     if (!window.confirm(`¿Estás seguro de eliminar "${title}"?`)) return;

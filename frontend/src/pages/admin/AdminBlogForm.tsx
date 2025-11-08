@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getBlogPostById, createBlogPost, updateBlogPost, BlogPost, categoryLabels } from '../../services/blogApi';
+import { getBlogPostById, createBlogPost, updateBlogPost, categoryLabels } from '../../services/blogApi';
 import toast from 'react-hot-toast';
 
 const AdminBlogForm: React.FC = () => {
@@ -27,40 +27,38 @@ const AdminBlogForm: React.FC = () => {
   });
 
   useEffect(() => {
-    if (isEdit) {
-      fetchPost();
-    }
-  }, [id]);
-
-  const fetchPost = async () => {
-    try {
-      setLoading(true);
-      const response = await getBlogPostById(id!);
-      const post = response.data;
-      setFormData({
-        title: post.title,
-        slug: post.slug,
-        excerpt: post.excerpt,
-        content: post.content,
-        authorName: post.author.name,
-        authorAvatar: post.author.avatar || '',
-        featuredImage: post.featuredImage || '',
-        category: post.category,
-        tags: post.tags.join(', '),
-        status: post.status,
-        metaTitle: post.metaTitle || '',
-        metaDescription: post.metaDescription || '',
-        metaKeywords: post.metaKeywords?.join(', ') || '',
-        canonicalUrl: post.canonicalUrl || ''
-      });
-    } catch (error: any) {
-      console.error('Error fetching post:', error);
-      toast.error('Error al cargar el artículo');
-      navigate('/admin/blog');
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (!isEdit) return;
+    const fetchPost = async () => {
+      try {
+        setLoading(true);
+        const response = await getBlogPostById(id!);
+        const post = response.data;
+        setFormData({
+          title: post.title,
+          slug: post.slug,
+          excerpt: post.excerpt,
+          content: post.content,
+          authorName: post.author.name,
+          authorAvatar: post.author.avatar || '',
+          featuredImage: post.featuredImage || '',
+          category: post.category,
+          tags: post.tags.join(', '),
+          status: post.status,
+          metaTitle: post.metaTitle || '',
+          metaDescription: post.metaDescription || '',
+          metaKeywords: post.metaKeywords?.join(', ') || '',
+          canonicalUrl: post.canonicalUrl || ''
+        });
+      } catch (error: any) {
+        console.error('Error fetching post:', error);
+        toast.error('Error al cargar el artículo');
+        navigate('/admin/blog');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPost();
+  }, [id, isEdit, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
