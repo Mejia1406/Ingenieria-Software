@@ -9,7 +9,6 @@ import Chatbot from './components/chatbot';
 
 // Lazy loading for less critical pages
 const UserProfile = lazy(() => import('./pages/UserProfile'));
-const WriteReview = lazy(() => import('./pages/WriteReview'));
 const CompanyDetail = lazy(() => import('./pages/CompanyDetail'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));

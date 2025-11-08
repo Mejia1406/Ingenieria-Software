@@ -71,7 +71,7 @@ const CompanyDetail: React.FC = () => {
   const [recentReviews, setRecentReviews] = useState<Review[]>([]);
   // Lista completa de reviews aprobadas (sin filtrar por estrellas)
   const [allReviews, setAllReviews] = useState<Review[]>([]);
-  const [reviewsPage, setReviewsPage] = useState(1);
+  
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewsError, setReviewsError] = useState<string | null>(null);
   // Filtro de rating seleccionado (1-5) o null para todos
@@ -174,8 +174,7 @@ const CompanyDetail: React.FC = () => {
 
   useEffect(() => {
     // Reinicia la paginación cuando cambia el slug o el filtro de rating
-    setAllReviews([]);
-    setReviewsPage(1);
+  setAllReviews([]);
     if (slug) fetchReviews(1);
   }, [slug, ratingFilter, fetchReviews]);
 
