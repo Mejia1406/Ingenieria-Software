@@ -31,7 +31,7 @@ const AdminReviewsModeration: React.FC = () => { // este componente es para que 
   const approve = async (id:string) => { // esta funcion es para aprobar una review
     setModeratingId(id);
     try {
-      const updated = await moderateReview(id, 'approved');
+      await moderateReview(id, 'approved');
       setData(prev => prev.filter(r => r._id !== id));
     } catch (e:any) {
       alert('Error aprobando');
@@ -42,7 +42,7 @@ const AdminReviewsModeration: React.FC = () => { // este componente es para que 
     if (!reasonText.trim()) { alert('Escribe una razón'); return; }
     setModeratingId(id);
     try {
-      const updated = await moderateReview(id, 'rejected', reasonText.trim());
+      await moderateReview(id, 'rejected', reasonText.trim());
       setData(prev => prev.filter(r => r._id !== id));
       setReasonModal({ id:'', open:false });
       setReasonText('');

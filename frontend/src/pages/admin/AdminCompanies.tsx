@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { adminListCompanies, adminDeleteCompany, AdminCompany } from '../../services/apiAdmin'; // Todo esto son funciones del Api
 import { Link, useNavigate } from 'react-router-dom'; 
 
@@ -13,7 +13,7 @@ const AdminCompanies: React.FC = () => {
   const [verifiedFilter, setVerifiedFilter] = useState(''); // "" por verificados o no
   const navigate = useNavigate(); 
 
-  const load = async () => { // funcion para cargar las compañias
+  const load = useCallback(async () => { // funcion para cargar las compañias
     setLoading(true); setError(null);
     try { // lo que hace este bloque de try es llamar a la funcion adminListCompanies que esta en apiAdmin.ts para tener la lista de compañias
       const res = await adminListCompanies({ page, limit: 20, search: search || undefined, industry: industryFilter || undefined, verified: verifiedFilter || undefined });
@@ -22,10 +22,9 @@ const AdminCompanies: React.FC = () => {
     } catch (e:any) {
       setError(e.message || 'Error cargando compañías');
     } finally { setLoading(false); }
-  };
+  }, [page, search, industryFilter, verifiedFilter]);
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [page]); // cada vez que cambie la pagina se vuelve a cargar la lista y ese comentario de dentro es para que no de error
-  useEffect(() => { setPage(1); load(); /* eslint-disable-next-line */ }, [search, industryFilter, verifiedFilter]);
+  useEffect(() => { load(); }, [load]);
 
   const handleDelete = async (id:string) => { // funcion para eliminar una compañia
     if (!window.confirm('¿Eliminar esta compañía?.')) return;
@@ -43,9 +42,9 @@ const AdminCompanies: React.FC = () => {
         <h2 className="text-xl font-bold text-slate-800">Compañías</h2>
       </div>
       <div className="grid gap-3 md:grid-cols-4">
-        <input placeholder="Buscar nombre o descripción" value={search} onChange={e=>setSearch(e.target.value)} className="col-span-2 px-3 py-2 border rounded-md text-sm" />
-        <input placeholder="Industria" value={industryFilter} onChange={e=>setIndustryFilter(e.target.value)} className="px-3 py-2 border rounded-md text-sm" />
-        <select value={verifiedFilter} onChange={e=>setVerifiedFilter(e.target.value)} className="px-3 py-2 border rounded-md text-sm">
+  <input placeholder="Buscar nombre o descripción" value={search} onChange={e=>{ setPage(1); setSearch(e.target.value); }} className="col-span-2 px-3 py-2 border rounded-md text-sm" />
+  <input placeholder="Industria" value={industryFilter} onChange={e=>{ setPage(1); setIndustryFilter(e.target.value); }} className="px-3 py-2 border rounded-md text-sm" />
+  <select value={verifiedFilter} onChange={e=>{ setPage(1); setVerifiedFilter(e.target.value); }} className="px-3 py-2 border rounded-md text-sm">
           <option value="">Verificadas?</option>
           <option value="true">Solo verificadas</option>
             <option value="false">No verificadas</option>

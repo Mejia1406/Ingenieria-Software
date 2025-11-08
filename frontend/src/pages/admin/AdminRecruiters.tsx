@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { listRecruiterRequests, approveRecruiter, rejectRecruiter } from '../../services/recruiterApi';
 import toast from 'react-hot-toast';
 
@@ -33,7 +33,7 @@ const AdminRecruiters: React.FC = () => {
   const [rejectNote, setRejectNote] = useState('');
   const [actionLoadingId, setActionLoadingId] = useState<string>('');
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -42,9 +42,9 @@ const AdminRecruiters: React.FC = () => {
     } catch (e) {
       setError('Error de red');
     } finally { setLoading(false); }
-  };
+  }, [statusFilter]);
 
-  useEffect(() => { load(); }, [statusFilter]);
+  useEffect(() => { load(); }, [load]);
 
   const handleApprove = async (userId: string) => {
     setActionLoadingId(userId);

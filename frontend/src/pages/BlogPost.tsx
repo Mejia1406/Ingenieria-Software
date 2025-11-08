@@ -12,28 +12,26 @@ const BlogPost: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (slug) {
-      fetchPost();
-    }
-  }, [slug]);
+    if (!slug) return;
+    const fetchPost = async () => {
+      try {
+        setLoading(true);
+        const response = await getBlogPostBySlug(slug!);
+        setPost(response.data);
 
-  const fetchPost = async () => {
-    try {
-      setLoading(true);
-      const response = await getBlogPostBySlug(slug!);
-      setPost(response.data);
-
-      // Fetch related posts
-      const relatedResponse = await getRelatedPosts(slug!, 3);
-      setRelatedPosts(relatedResponse.data);
-    } catch (error: any) {
-      console.error('Error fetching post:', error);
-      toast.error('Artículo no encontrado');
-      navigate('/blog');
-    } finally {
-      setLoading(false);
-    }
-  };
+        // Fetch related posts
+        const relatedResponse = await getRelatedPosts(slug!, 3);
+        setRelatedPosts(relatedResponse.data);
+      } catch (error: any) {
+        console.error('Error fetching post:', error);
+        toast.error('Artículo no encontrado');
+        navigate('/blog');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPost();
+  }, [slug, navigate]);
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('es-ES', {

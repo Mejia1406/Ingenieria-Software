@@ -5,7 +5,6 @@ import axios from "axios";
 import WriteReviewModal from "../pages/WriteReview";
 import AuthPage from './Auth';
 import AnimatedList from '../components/AnimatedList';
-import { number } from "motion";
 
 interface User {
     id: string;
@@ -40,7 +39,6 @@ const Companies: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(20);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [totalCompanies, setTotalCompanies] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [showAuth, setShowAuth] = useState(false);
   const [showWriteReview, setShowWriteReview] = useState(false);
@@ -102,13 +100,12 @@ const Companies: React.FC = () => {
         if (size && size !== "All") params.size = size;
 
   const response = await axios.get(`${API_URL}/companies`, { params });
-        if (response.data.success && response.data.data.companies) {
+            if (response.data.success && response.data.data.companies) {
           if (isMounted) setCompanies(response.data.data.companies);
           if (isMounted) {
             const pagination = response.data.data.pagination || { page, limit, total: 0, pages: 1 };
             setPage(pagination.page || page);
             setLimit(pagination.limit || limit);
-            setTotalCompanies(pagination.total || 0);
             setTotalPages(pagination.pages || 1);
           }
           if (isMounted) setLoading(false);

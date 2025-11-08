@@ -45,7 +45,7 @@ const AdminCompanyForm: React.FC = () => {
       }
     };
     load();
-  }, [id, isNew]);
+  }, [id, isNew, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => { // esta funcion es para manejar los cambios en los campos del formulario y actualizar el estado del formulario
     const { name, value } = e.target; // extraer el nombre y el valor del campo que cambio
