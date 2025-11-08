@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 import Review from '../models/Review';
 import { AuthRequest } from '../middleware/auth';
 
-// Helper to parse range strings like 7d,30d,90d,180d,365d -> milliseconds
 function parseRange(range?: string): { startDate: Date; rangeLabel: string } {
   const allowed = new Set(['7d','30d','90d','180d','365d']);
   const fallback = '30d';
@@ -13,7 +12,6 @@ function parseRange(range?: string): { startDate: Date; rangeLabel: string } {
   return { startDate, rangeLabel: use };
 }
 
-// Decide interval based on range if not explicitly provided
 function decideInterval(range: string, interval?: string): 'day' | 'week' | 'month' {
   if (interval && ['day','week','month'].includes(interval)) return interval as any;
   const days = parseInt(range.replace('d',''), 10);
@@ -33,29 +31,27 @@ export const getRecruiterAnalytics = async (req: AuthRequest, res: Response) => 
     const { startDate, rangeLabel } = parseRange(range);
     const finalInterval = decideInterval(rangeLabel, interval);
 
-    // Determine company scope:
-    // Recruiter: use own recruiterInfo.companyId unless admin provided a companyId
     let companyId: string | undefined = companyIdQuery;
     const isAdmin = req.user.userType === 'admin';
     const isRecruiter = req.user.userType === 'recruiter';
 
     if (!isAdmin && isRecruiter) {
       if (!req.user.recruiterInfo || !req.user.recruiterInfo.companyId) {
-        return res.status(400).json({ success: false, message: 'Recruiter not associated to a company yet' });
+        return res.status(400).json({ success: false, message: 'Reclutador no está asociado a una empresa aún' });
       }
       companyId = req.user.recruiterInfo.companyId.toString();
     }
 
     if (isAdmin && !companyId) {
-      return res.status(400).json({ success: false, message: 'companyId is required for admin analytics query' });
+      return res.status(400).json({ success: false, message: 'companyId es requerido para la consulta de analíticas de admin' });
     }
 
     if (!companyId) {
-      return res.status(400).json({ success: false, message: 'companyId could not be resolved' });
+      return res.status(400).json({ success: false, message: 'no se pudo resolver el companyId' });
     }
 
     if (!mongoose.Types.ObjectId.isValid(companyId)) {
-      return res.status(400).json({ success: false, message: 'Invalid companyId' });
+      return res.status(400).json({ success: false, message: 'companyId no es válido' });
     }
 
     const match: any = {
@@ -65,7 +61,6 @@ export const getRecruiterAnalytics = async (req: AuthRequest, res: Response) => 
       createdAt: { $gte: startDate }
     };
 
-    // Build trend group _id based on interval
     let trendGroupId: any;
     if (finalInterval === 'day') {
       trendGroupId = {
@@ -142,7 +137,6 @@ export const getRecruiterAnalytics = async (req: AuthRequest, res: Response) => 
     const avgRating = summaryRaw && summaryRaw.avgRating ? Number(summaryRaw.avgRating.toFixed(2)) : null;
     const reviewsWithResponse = summaryRaw ? summaryRaw.reviewsWithResponse : 0;
 
-    // Build rating distribution (ensure 1..5 present)
     const distributionRaw: Array<{ _id: number; count: number }> = data.distribution || [];
     const ratingDistribution: Record<string, number> = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 };
     distributionRaw.forEach(item => {
@@ -151,7 +145,6 @@ export const getRecruiterAnalytics = async (req: AuthRequest, res: Response) => 
       }
     });
 
-    // Map trend into date labels
     const trendRaw: Array<any> = data.trend || [];
     const trend = trendRaw.map(bucket => {
       const id = bucket._id || {};
@@ -159,7 +152,7 @@ export const getRecruiterAnalytics = async (req: AuthRequest, res: Response) => 
       if (finalInterval === 'day') {
         label = `${id.y}-${String(id.m).padStart(2,'0')}-${String(id.d).padStart(2,'0')}`;
       } else if (finalInterval === 'week') {
-        label = `W${id.w}-${id.yw}`; // Week-year
+        label = `W${id.w}-${id.yw}`;
       } else { // month
         label = `${id.y}-${String(id.m).padStart(2,'0')}`;
       }
@@ -197,6 +190,6 @@ export const getRecruiterAnalytics = async (req: AuthRequest, res: Response) => 
     });
   } catch (err: any) {
     console.error('Analytics error:', err);
-    res.status(500).json({ success: false, message: 'Error generating analytics', error: err.message });
+    res.status(500).json({ success: false, message: 'Error generando analíticas', error: err.message });
   }
 };

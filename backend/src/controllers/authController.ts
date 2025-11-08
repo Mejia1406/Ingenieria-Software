@@ -7,7 +7,6 @@ interface AuthRequest extends Request {
     user?: IUser;
 }
 
-// Generate JWT token
 const generateToken = (userId: string): string => {
     return jwt.sign(
         { userId }, 
@@ -16,7 +15,6 @@ const generateToken = (userId: string): string => {
     );
 };
 
-// Register new user
 export const register = async (req: Request, res: Response) => {
     try {
         const { 
@@ -28,20 +26,17 @@ export const register = async (req: Request, res: Response) => {
             location 
         } = req.body;
 
-        // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({
                 success: false,
-                message: 'User already exists with this email'
+                message: 'El usuario ya existe con este correo electrónico'
             });
         }
 
-        // Hash password
         const saltRounds = 12;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        // Create new user
         // No permitir crear directamente recruiter
         const sanitizedUserType = (userType === 'recruiter') ? 'candidate' : (userType || 'candidate');
 
@@ -56,10 +51,8 @@ export const register = async (req: Request, res: Response) => {
 
         await user.save();
 
-        // Generate token
         const token = generateToken((user._id as any).toString());
 
-        // Remove password from response
         const userResponse = {
             id: user._id,
             email: user.email,
@@ -75,7 +68,7 @@ export const register = async (req: Request, res: Response) => {
 
         res.status(201).json({
             success: true,
-            message: 'User registered successfully',
+            message: 'User registrado correctamente',
             data: {
                 user: userResponse,
                 token
@@ -86,7 +79,7 @@ export const register = async (req: Request, res: Response) => {
         console.error('Registration error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error creating user account',
+            message: 'Error creando cuenta de usuario',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
@@ -102,7 +95,7 @@ export const login = async (req: Request, res: Response) => {
         if (!user) {
             return res.status(401).json({
                 success: false,
-                message: 'Invalid email or password'
+                message: 'Correo electrónico o contraseña inválidos'
             });
         }
 
@@ -111,7 +104,7 @@ export const login = async (req: Request, res: Response) => {
         if (!isPasswordValid) {
             return res.status(401).json({
                 success: false,
-                message: 'Invalid email or password'
+                message: 'Correo electrónico o contraseña inválidos'
             });
         }
 
@@ -135,7 +128,7 @@ export const login = async (req: Request, res: Response) => {
 
         res.json({
             success: true,
-            message: 'Login successful',
+            message: 'Login exitoso',
             data: {
                 user: userResponse,
                 token
@@ -146,7 +139,7 @@ export const login = async (req: Request, res: Response) => {
         console.error('Login error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error during login',
+            message: 'Error durante el login',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
@@ -160,7 +153,7 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
         if (!user) {
             return res.status(404).json({
                 success: false,
-                message: 'User not found'
+                message: 'Usuario no encontrado'
             });
         }
 
@@ -173,7 +166,7 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
         console.error('Get profile error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error fetching user profile',
+            message: 'Error al obtener el perfil del usuario',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
@@ -205,13 +198,13 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
         if (!user) {
             return res.status(404).json({
                 success: false,
-                message: 'User not found'
+                message: 'Usuario no encontrado'
             });
         }
 
         res.json({
             success: true,
-            message: 'Profile updated successfully',
+            message: 'Perfil actualizado correctamente',
             data: { user }
         });
 
@@ -219,7 +212,7 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
         console.error('Update profile error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error updating profile',
+            message: 'Error al actualizar el perfil',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
@@ -236,7 +229,7 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
         if (!user) {
             return res.status(404).json({
                 success: false,
-                message: 'User not found'
+                message: 'Usuario no encontrado'
             });
         }
 
@@ -245,7 +238,7 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
         if (!isCurrentPasswordValid) {
             return res.status(400).json({
                 success: false,
-                message: 'Current password is incorrect'
+                message: 'La contraseña actual es incorrecta'
             });
         }
 
@@ -259,14 +252,14 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
 
         res.json({
             success: true,
-            message: 'Password changed successfully'
+            message: 'Contraseña cambiada correctamente'
         });
 
     } catch (error: any) {
         console.error('Change password error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error changing password',
+            message: 'Error al cambiar la contraseña',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
@@ -276,6 +269,6 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
 export const logout = async (req: Request, res: Response) => {
     res.json({
         success: true,
-        message: 'Logged out successfully'
+        message: 'Logout exitoso'
     });
 };

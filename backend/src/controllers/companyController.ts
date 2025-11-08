@@ -70,7 +70,7 @@ export const getCompanies = async (req: Request, res: Response) => {
         console.error('Get companies error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error fetching companies',
+            message: 'Error al obtener las empresas',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
@@ -85,7 +85,7 @@ export const getCompany = async (req: Request, res: Response) => {
         if (!company) {
             return res.status(404).json({
                 success: false,
-                message: 'Company not found'
+                message: 'Company no encontrada'
             });
         }
 
@@ -112,7 +112,7 @@ export const getCompany = async (req: Request, res: Response) => {
         console.error('Get company error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error fetching company',
+            message: 'Error al obtener la empresa',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }

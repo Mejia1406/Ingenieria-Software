@@ -50,19 +50,19 @@ async function attemptConnect(attempt = 1): Promise<void> { // esta funcion inte
         dbState.host = conn.connection.host; // actualiza el host al que estamos conectados
         dbState.name = conn.connection.name; // actualiza el nombre de la base de datos a la que estamos conectados
         dbState.lastConnectedAt = new Date().toISOString(); // actualiza la ultima vez que se conecto a la base de datos
-        log(`📊 MongoDB Connected: ${conn.connection.host}`); // se muestra en consola
-        log(`📝 Database: ${conn.connection.name}`); // igual que lo anterior
+        log(`MongoDB Connected: ${conn.connection.host}`); // se muestra en consola
+        log(`Database: ${conn.connection.name}`); // igual que lo anterior
     } catch (err: any) { // si hay un error al intentar conectarse, entra aca y ps muestra el error en consola
         dbState.lastError = err?.message || String(err);
         dbState.state = 'error';
-        console.error(`❌ Error conectando a MongoDB (intento ${attempt}):`, dbState.lastError);
+        console.error(`Error conectando a MongoDB (intento ${attempt}):`, dbState.lastError);
         if (attempt < MAX_RETRIES) {
             const delay = RETRY_DELAY_BASE * attempt;
-            log(`⏳ Reintentando en ${delay}ms...`);
+            log(`Reintentando en ${delay}ms...`);
             await new Promise(r => setTimeout(r, delay));
             return attemptConnect(attempt + 1);
         }
-        console.error('🚨 Se alcanzó el número máximo de reintentos. Abortando.');
+        console.error('Se alcanzó el número máximo de reintentos.');
         throw err;
     }
 }
@@ -72,40 +72,40 @@ async function attemptConnect(attempt = 1): Promise<void> { // esta funcion inte
 mongoose.connection.on('connecting', () => {
     dbState.state = 'connecting';
     dbState.readyState = mongoose.connection.readyState;
-    log('🟡 MongoDB connecting...');
+    log('MongoDB connecting...');
 });
 
 mongoose.connection.on('connected', () => {
     dbState.state = 'connected';
     dbState.readyState = mongoose.connection.readyState;
     dbState.lastConnectedAt = new Date().toISOString();
-    log('🟢 MongoDB connected.');
+    log('MongoDB connected.');
 });
 
 mongoose.connection.on('reconnected', () => {
     dbState.state = 'reconnected';
     dbState.readyState = mongoose.connection.readyState;
-    log('🔄 MongoDB reconnected.');
+    log('MongoDB reconnected.');
 });
 
 mongoose.connection.on('disconnecting', () => {
     dbState.state = 'disconnecting';
     dbState.readyState = mongoose.connection.readyState;
-    log('🟠 MongoDB disconnecting...');
+    log('MongoDB disconnecting...');
 });
 
 mongoose.connection.on('disconnected', () => {
     dbState.state = 'disconnected';
     dbState.readyState = mongoose.connection.readyState;
     dbState.lastDisconnectedAt = new Date().toISOString();
-    log('🔴 MongoDB disconnected.');
+    log('MongoDB disconnected.');
 });
 
 mongoose.connection.on('error', (err) => {
     dbState.state = 'error';
     dbState.readyState = mongoose.connection.readyState;
     dbState.lastError = err.message;
-    console.error('💥 MongoDB connection error:', err.message);
+    console.error('MongoDB connection error:', err.message);
 });
 
 const connectDB = async () => { // y esto se encarga de iniciar la conexion a la base de datos

@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import BlogPost from '../models/BlogPost';
 import Company from '../models/Company';
 
-// Get all blog posts with filters and pagination
 export const getAllBlogPosts = async (req: Request, res: Response) => {
   try {
     const { 
@@ -16,7 +15,6 @@ export const getAllBlogPosts = async (req: Request, res: Response) => {
 
     const filter: any = {};
     
-    // Only show published posts to non-admin users
     if (status) {
       filter.status = status;
     }
@@ -59,7 +57,7 @@ export const getAllBlogPosts = async (req: Request, res: Response) => {
     console.error('Error fetching blog posts:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error fetching blog posts',
+      message: 'Error al obtener los posts del blog',
       error: error.message 
     });
   }
@@ -77,7 +75,7 @@ export const getBlogPostBySlug = async (req: Request, res: Response) => {
     if (!post) {
       return res.status(404).json({ 
         success: false, 
-        message: 'Blog post not found' 
+        message: 'Post del blog no encontrado' 
       });
     }
 
@@ -92,7 +90,7 @@ export const getBlogPostBySlug = async (req: Request, res: Response) => {
     console.error('Error fetching blog post:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error fetching blog post',
+      message: 'Error al obtener el post del blog',
       error: error.message 
     });
   }
@@ -110,7 +108,7 @@ export const getBlogPostById = async (req: Request, res: Response) => {
     if (!post) {
       return res.status(404).json({ 
         success: false, 
-        message: 'Blog post not found' 
+        message: 'Post del blog no encontrado' 
       });
     }
 
@@ -122,7 +120,7 @@ export const getBlogPostById = async (req: Request, res: Response) => {
     console.error('Error fetching blog post:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error fetching blog post',
+      message: 'Error al obtener el post del blog',
       error: error.message 
     });
   }
@@ -146,14 +144,14 @@ export const createBlogPost = async (req: Request, res: Response) => {
 
     res.status(201).json({
       success: true,
-      message: 'Blog post created successfully',
+      message: 'Post del blog creado correctamente',
       data: post
     });
   } catch (error: any) {
     console.error('Error creating blog post:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error creating blog post',
+      message: 'Error al crear el post del blog',
       error: error.message 
     });
   }
@@ -174,21 +172,21 @@ export const updateBlogPost = async (req: Request, res: Response) => {
     if (!post) {
       return res.status(404).json({ 
         success: false, 
-        message: 'Blog post not found' 
+        message: 'Post del blog no encontrado' 
       });
     }
 
     res.json({
       success: true,
-      message: 'Blog post updated successfully',
+      message: 'Post del blog actualizado correctamente',
       data: post
     });
   } catch (error: any) {
     console.error('Error updating blog post:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error updating blog post',
-      error: error.message 
+      message: 'Error al actualizar el post del blog',
+      error: error.message
     });
   }
 };
@@ -203,19 +201,19 @@ export const deleteBlogPost = async (req: Request, res: Response) => {
     if (!post) {
       return res.status(404).json({ 
         success: false, 
-        message: 'Blog post not found' 
+        message: 'Post del blog no encontrado' 
       });
     }
 
     res.json({
       success: true,
-      message: 'Blog post deleted successfully'
+      message: 'Post del blog eliminado correctamente'
     });
   } catch (error: any) {
     console.error('Error deleting blog post:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error deleting blog post',
+      message: 'Error al eliminar el post del blog',
       error: error.message 
     });
   }
@@ -254,7 +252,7 @@ export const getBlogCategories = async (req: Request, res: Response) => {
     console.error('Error fetching categories:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error fetching categories',
+      message: 'Error al obtener las categorías',
       error: error.message 
     });
   }
@@ -282,7 +280,7 @@ export const getPopularTags = async (req: Request, res: Response) => {
     console.error('Error fetching tags:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error fetching tags',
+      message: 'Error al obtener las etiquetas',
       error: error.message 
     });
   }
@@ -299,7 +297,7 @@ export const getRelatedPosts = async (req: Request, res: Response) => {
     if (!currentPost) {
       return res.status(404).json({ 
         success: false, 
-        message: 'Blog post not found' 
+        message: 'Post del blog no encontrado' 
       });
     }
 
@@ -324,7 +322,7 @@ export const getRelatedPosts = async (req: Request, res: Response) => {
     console.error('Error fetching related posts:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error fetching related posts',
+      message: 'Error al obtener los posts relacionados',
       error: error.message 
     });
   }

@@ -38,7 +38,7 @@ export const chatWithBot = async (req: AuthRequest, res: Response) => {
     if (!message || typeof message !== 'string') {
       return res.status(400).json({
         success: false,
-        message: 'Message is required'
+        message: 'Message es requerido'
       });
     }
 
