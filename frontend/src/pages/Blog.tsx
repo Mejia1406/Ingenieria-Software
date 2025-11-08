@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { getAllBlogPosts, getBlogCategories, categoryLabels, BlogPost, BlogCategory } from '../services/blogApi';
 import SEO from '../components/SEO';
 import toast from 'react-hot-toast';
 
 const Blog: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,38 +21,38 @@ const Blog: React.FC = () => {
   const currentPage = parseInt(searchParams.get('page') || '1');
 
   useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllBlogPosts({
+          page: currentPage,
+          limit: 12,
+          category: currentCategory || undefined,
+          search: currentSearch || undefined,
+          status: 'published'
+        });
+        setPosts(response.data);
+        setPagination(response.pagination);
+      } catch (error: any) {
+        console.error('Error fetching posts:', error);
+        toast.error('Error al cargar los artículos');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchCategories = async () => {
+      try {
+        const response = await getBlogCategories();
+        setCategories(response.data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
     fetchPosts();
     fetchCategories();
   }, [currentCategory, currentSearch, currentPage]);
-
-  const fetchPosts = async () => {
-    try {
-      setLoading(true);
-      const response = await getAllBlogPosts({
-        page: currentPage,
-        limit: 12,
-        category: currentCategory || undefined,
-        search: currentSearch || undefined,
-        status: 'published'
-      });
-      setPosts(response.data);
-      setPagination(response.pagination);
-    } catch (error: any) {
-      console.error('Error fetching posts:', error);
-      toast.error('Error al cargar los artículos');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const response = await getBlogCategories();
-      setCategories(response.data);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
 
   const handleCategoryFilter = (category: string) => {
     const params = new URLSearchParams(searchParams);

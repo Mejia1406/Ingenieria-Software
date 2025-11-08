@@ -72,7 +72,6 @@ const CompanyDetail: React.FC = () => {
   // Lista completa de reviews aprobadas (sin filtrar por estrellas)
   const [allReviews, setAllReviews] = useState<Review[]>([]);
   const [reviewsPage, setReviewsPage] = useState(1);
-  const [reviewsTotal, setReviewsTotal] = useState(0);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewsError, setReviewsError] = useState<string | null>(null);
   // Filtro de rating seleccionado (1-5) o null para todos
@@ -100,10 +99,7 @@ const CompanyDetail: React.FC = () => {
     navigate('/admin');
   };
 
-  const handleWriteReview = () => {
-    setIsDropdownOpen(false);
-    setShowWriteReview(true);
-  };
+  // write review button opens modal directly where used
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -166,7 +162,6 @@ const CompanyDetail: React.FC = () => {
       if (res.data?.success) {
         const list: Review[] = res.data.data;
         setAllReviews(list); // guardamos lista completa, filtramos después
-        setReviewsTotal(list.length);
       } else {
         setReviewsError('No se pudieron cargar las reseñas');
       }
@@ -184,11 +179,7 @@ const CompanyDetail: React.FC = () => {
     if (slug) fetchReviews(1);
   }, [slug, ratingFilter, fetchReviews]);
 
-  const handleLoadMoreReviews = () => {
-    const next = reviewsPage + 1;
-    setReviewsPage(next);
-    fetchReviews(next);
-  };
+  // Load more behaviour not currently used in UI — keep pagination state for future use
 
   // Combined reviews for distribution (prefer allReviews, fallback to recent)
   const reviewsForStats = allReviews.length ? allReviews : recentReviews; // siempre sin filtrar

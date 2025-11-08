@@ -29,7 +29,6 @@ const SEO: React.FC<SEOProps> = ({
   articleTags,
   schemaData
 }) => {
-  const siteUrl = 'https://ingenieria-software-2025.vercel.app';
   const fullTitle = `${title} | TalentTrace`;
   const fullCanonicalUrl = canonicalUrl || window.location.href;
 
@@ -92,7 +91,7 @@ const SEO: React.FC<SEOProps> = ({
       updateSchemaScript(schemaData);
     }
 
-  }, [title, description, keywords, canonicalUrl, ogImage, ogType, articlePublishedTime, articleModifiedTime, articleAuthor, articleSection, articleTags, schemaData]);
+  }, [title, description, keywords, canonicalUrl, ogImage, ogType, articlePublishedTime, articleModifiedTime, articleAuthor, articleSection, articleTags, schemaData, fullTitle, fullCanonicalUrl]);
 
   return null; // This component doesn't render anything
 };
